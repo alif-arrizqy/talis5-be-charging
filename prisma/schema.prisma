@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model rectifier {
+  id      Int   @default(autoincrement()) @id
+  voltage Int
+  current Int
+  max_voltage_cell Int
+  min_voltage_cell Int
+  total_cell Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model master_frame {
+  id      Int   @default(autoincrement()) @id
+  pcb_barcode String @unique
+  sn_code_1 String
+  sn_code_2 String
+  status Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  frame_loggers frame_logger[]
+  frame_histories frame_history[]
+}
+
+model frame_logger {
+  id      Int   @default(autoincrement()) @id
+  pcb_barcode String
+  master_frame master_frame @relation(fields: [pcb_barcode], references: [pcb_barcode])
+  voltage Int
+  current Int
+  remaining_capacity Int
+  average_cell_temperature Int
+  env_temperature Int
+  warning_flag String
+  protection_flag String
+  fault_status_flag String
+  soc Int
+  soh Int
+  full_charged_cap Int
+  cycle_count Int
+  cell_voltage_1 Int
+  cell_voltage_2 Int
+  cell_voltage_3 Int
+  cell_voltage_4 Int
+  cell_voltage_5 Int
+  cell_voltage_6 Int
+  cell_voltage_7 Int
+  cell_voltage_8 Int
+  cell_voltage_9 Int
+  cell_voltage_10 Int
+  cell_voltage_11 Int
+  cell_voltage_12 Int
+  cell_voltage_13 Int
+  cell_voltage_14 Int
+  cell_voltage_15 Int
+  cell_voltage_16 Int
+  max_cell_voltage Int
+  min_cell_voltage Int
+  cell_voltage_diff Int
+  max_cell_temperature Int
+  min_cell_temperature Int
+  fet_temperature Int
+  cell_temperature_1 Int
+  cell_temperature_2 Int
+  cell_temperature_3 Int
+  cell_temperature_4 Int
+  ambient_temperature Int
+  remaining_charge_time Int
+  remaining_discharge_time Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model frame_history {
+  id      Int   @default(autoincrement()) @id
+  pcb_barcode String
+  master_frame master_frame @relation(fields: [pcb_barcode], references: [pcb_barcode])
+  voltage Int
+  current Int
+  remaining_capacity Int
+  soc Int
+  soh Int
+  max_cell_voltage Int
+  min_cell_voltage Int
+  cell_voltage_diff Int
+  max_cell_temperature Int
+  min_cell_temperature Int
+  remaining_charge_time Int
+  remaining_discharge_time Int
+  status Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
