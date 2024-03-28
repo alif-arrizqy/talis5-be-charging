@@ -30,7 +30,7 @@ model master_frame {
   pcb_barcode String @unique
   sn_code_1 String
   sn_code_2 String
-  status Boolean
+  charging Boolean
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   frame_loggers frame_logger[]
@@ -90,19 +90,22 @@ model frame_history {
   id      Int   @default(autoincrement()) @id
   pcb_barcode String
   master_frame master_frame @relation(fields: [pcb_barcode], references: [pcb_barcode])
-  voltage Int
-  current Int
-  remaining_capacity Int
-  soc Int
-  soh Int
-  max_cell_voltage Int
-  min_cell_voltage Int
-  cell_voltage_diff Int
-  max_cell_temperature Int
-  min_cell_temperature Int
-  remaining_charge_time Int
-  remaining_discharge_time Int
-  status Boolean
+  voltage Int?
+  current Int?
+  remaining_capacity Int?
+  soc Int?
+  soh Int?
+  max_cell_voltage Int?
+  min_cell_voltage Int?
+  cell_voltage_diff Int?
+  max_cell_temperature Int?
+  min_cell_temperature Int?
+  remaining_charge_time Int?
+  remaining_discharge_time Int?
+  charging Boolean?
+  start_time String?
+  end_time String?
+  charging_time String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
