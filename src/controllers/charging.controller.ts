@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Request, Response } from "express";
+import { Request, Response, response } from "express";
 import { ResponseHelper } from "../helpers/response/response";
 import { dataCleaning } from "../helpers/preprocessing/data";
 import * as ChargingService from "../services/charging.service";
@@ -76,9 +76,16 @@ class ChargingController {
       const cleanedData = await this.preprocessing(req, res);
       // check charging status
       cleanedData?.map(async (item) => {
-        const isTrue = ChargingService.getMasterFrame(item.pcb_barcode);
-        // error here
-      })
+        const isTrue = ChargingService.checkChargingStatus(item.pcb_barcode);
+        // handle promise
+        await isTrue.then((response) => {
+          if (response) {
+            // store data
+            return ChargingService.createLogData;
+          }
+          return null
+        });
+      });
     } catch (error) {
       res.json(ResponseHelper.error("Failed to store data", 400));
     }

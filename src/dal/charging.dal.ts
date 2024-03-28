@@ -31,6 +31,26 @@ const getMasterFrame = async (pcb_barcode: string): Promise<ChargingDto.IMasterF
   }
 };
 
+const checkChargingStatus = async (pcb_barcode: string): Promise<boolean> => {
+  try {
+    const masterFrame = await prisma.master_frame.findFirst({
+      where: {
+        pcb_barcode: pcb_barcode,
+      },
+    });
+
+    if (masterFrame) {
+      return masterFrame.charging;
+    } else {
+      throw new Error(`Master Frame ${pcb_barcode} Not Found `);
+    }
+  } catch (error) {
+    console.log(error);
+    throw new Error("Failed to retrieve master frame data");
+  }
+
+}
+
 const createMasterFrame = async (
   payload: ChargingDto.IMasterFrame[]
 ): Promise<boolean> => {
@@ -267,6 +287,7 @@ const updateFrameHistory = async (payload: any): Promise<boolean> => {
 export {
   getAllMasterFrame,
   getMasterFrame,
+  checkChargingStatus,
   createLogData,
   createMasterFrame,
   getAllFrameHistory,

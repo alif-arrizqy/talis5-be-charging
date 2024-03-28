@@ -18,7 +18,7 @@ class ChargingRoutes {
     this.router.get("/frame-history/:pcb_barcode", this.controller.getFrameHistory);
     this.router.put("/frame-history", this.controller.updateFrameHistory);
     
-    this.router.post("/store-data", this.controller.storeData);
+    this.router.get("/data", this.controller.storeData);
   }
 }
 
