@@ -7,6 +7,14 @@ export class ResponseHelper {
     };
   }
 
+  public static successMessage(message: any, statusCode: number) {
+    return {
+      statusCode: statusCode,
+      status: "success",
+      message: message,
+    };
+  }
+
   public static error(message: any, STATUS_CODES: number = 400) {
     return {
       statusCode: STATUS_CODES,
