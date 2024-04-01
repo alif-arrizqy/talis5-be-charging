@@ -23,6 +23,12 @@ export const createMasterFrame = async (
   return await ChargingDal.createMasterFrame(payload);
 }
 
+export const updateMasterFrame = async (
+  pcb_barcode: string, charging: boolean
+): Promise<boolean> => {
+  return await ChargingDal.updateMasterFrame(pcb_barcode, charging);
+}
+
 export const createLogData = async (
   payload: any
 ): Promise<ChargingDto.IStoreLogOutput> => {
