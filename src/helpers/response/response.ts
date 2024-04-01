@@ -7,7 +7,7 @@ export class ResponseHelper {
     };
   }
 
-  public static successMessage(message: any, statusCode: number) {
+  public static successMessage(message: String, statusCode: number) {
     return {
       statusCode: statusCode,
       status: "success",
