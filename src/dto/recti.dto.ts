@@ -1,3 +1,10 @@
+export interface RectiInput {
+  maxVoltageCell: number;
+  minVoltageCell: number;
+  totalCell: number;
+  current: number;
+}
+
 export interface RectiDto {
   voltage: number;
   current: number;

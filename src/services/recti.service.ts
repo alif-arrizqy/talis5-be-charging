@@ -5,6 +5,10 @@ export const getAll = async () => {
   return await RectiDal.getAll();
 };
 
+export const createRecti = async (payload: RectiDto.RectiInput) => {
+  return await RectiDal.createRecti(payload);
+}
+
 export const createDefaultValue = async (): Promise<RectiDto.RectiOutput> => {
   return await RectiDal.createDefaultValue();
 };

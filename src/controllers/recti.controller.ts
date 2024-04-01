@@ -54,6 +54,42 @@ class RectiController {
     }
   };
 
+  setRecti = async (req: Request, res: Response) => {
+    const payload = req.body;
+    const maxVoltCell: number = req.body.maxVoltageCell;
+    const minVoltCell: number = req.body.minVoltageCell;
+    const totalCell: number = req.body.totalCell;
+    const voltage: number = maxVoltCell * totalCell;
+    const current: number = req.body.current;
+    try {
+      const data = await RectiService.createRecti(payload);
+      if (data) {
+        // post to recti api
+        // set voltage
+        // await axios({
+        //   method: "POST",
+        //   url: `${process.env.RECTI_URL}/set-voltage`,
+        //   data: { group: 0, subaddress: 0, voltage: voltage },
+        //   timeout: 5000,
+        // });
+
+        // set current
+        // await axios({
+        //   method: "POST",
+        //   url: `${process.env.RECTI_URL}/set-current`,
+        //   data: { group: 0, subaddress: 0, voltage: current * 1000 },
+        //   timeout: 5000,
+        // });
+
+        res.json(ResponseHelper.success("Success update rectifier data"));
+      } else {
+        res.json(ResponseHelper.success("Success create rectifier data"));
+      }
+    } catch (error) {
+      res.json(ResponseHelper.error(error, 400));
+    }
+  };
+
   setDefaultValue = async (req: Request, res: Response) => {
     const data = await RectiService.createDefaultValue();
     if (data) {
@@ -61,7 +97,7 @@ class RectiController {
     } else {
       res.json(ResponseHelper.success("Success create default value"));
     }
-  }
+  };
 
   setVoltage = async (req: Request, res: Response) => {
     const payload = req.body;
@@ -98,7 +134,6 @@ class RectiController {
     try {
       const data = await RectiService.createCurrent(payload);
       // post to recti api
-      console.log(data);
       if (data !== null) {
         // await axios({
         //   method: "POST",
@@ -114,7 +149,7 @@ class RectiController {
         //   .catch((error) => {
         //     res.json(ResponseHelper.error(error.message, 500));
         //   });
-        
+
         res.json(ResponseHelper.success(`Set Rectifier Current to ${data} A`));
       } else {
         res.json(ResponseHelper.error(`Missing Rectifier Data`, 404));
