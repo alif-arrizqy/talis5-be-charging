@@ -10,48 +10,34 @@ const getAll = async (): Promise<RectiDto.RectiOutput[]> => {
 };
 
 const createRecti = async (payload: RectiDto.RectiInput): Promise<boolean> => {
-  const maxVoltCell: number = payload.maxVoltageCell;
-  const minVoltCell: number = payload.minVoltageCell;
-  const totalCell: number = payload.totalCell;
-  const voltage: number = maxVoltCell * totalCell;
-  const current: number = payload.current;
+  const { maxVoltageCell, minVoltageCell, totalCell, current } = payload;
+  const voltage: number = maxVoltageCell * totalCell;
 
   // find rectifier data
   const isExist = await prisma.rectifier.findFirst();
   if (isExist) {
-    if (
-      isExist.voltage === voltage &&
-      isExist.current === current &&
-      isExist.max_voltage_cell === maxVoltCell &&
-      isExist.min_voltage_cell === minVoltCell &&
-      isExist.total_cell === totalCell
-    ) {
-      return true;
-    } else {
-      await prisma.rectifier.update({
-        where: { id: isExist.id },
-        data: {
-          voltage: voltage,
-          current: current,
-          max_voltage_cell: maxVoltCell,
-          min_voltage_cell: minVoltCell,
-          total_cell: totalCell,
-        },
-      });
-      return true;
-    }
-  } else {
-    await prisma.rectifier.create({
+    await prisma.rectifier.update({
+      where: { id: isExist.id },
       data: {
-        voltage: voltage,
-        current: current,
-        max_voltage_cell: maxVoltCell,
-        min_voltage_cell: minVoltCell,
+        voltage,
+        current,
+        max_voltage_cell: maxVoltageCell,
+        min_voltage_cell: minVoltageCell,
         total_cell: totalCell,
       },
     });
-    return false;
+  } else {
+    await prisma.rectifier.create({
+      data: {
+        voltage,
+        current,
+        max_voltage_cell: maxVoltageCell,
+        min_voltage_cell: minVoltageCell,
+        total_cell: totalCell,
+      },
+    });
   }
+  return !!isExist;
 };
 
 const createDefaultValue = async (): Promise<RectiDto.RectiOutput> => {

@@ -1,5 +1,5 @@
 import axios from "axios";
-import e, { Request, Response } from "express";
+import { Request, Response } from "express";
 import { ResponseHelper } from "../helpers/response/response";
 import { dataCleaning } from "../helpers/preprocessing/data";
 import * as ChargingService from "../services/charging.service";
@@ -15,7 +15,7 @@ class ChargingController {
       });
       return response.data;
     } catch (error) {
-      res.json(ResponseHelper.error("Failed to retrieve data battery", 400));
+      throw new Error("Failed to retrieve data battery");
     }
   };
 
@@ -27,7 +27,7 @@ class ChargingController {
       // data cleaning
       return dataCleaning(raw);
     } catch (error) {
-      res.json(ResponseHelper.error("Failed to preprocess data", 400));
+      throw new Error("Failed to preprocess data");
     }
   };
 
@@ -52,7 +52,6 @@ class ChargingController {
     }
   };
 
-  // Store master frame
   storeMasterFrame = async (req: Request, res: Response) => {
     try {
       // data cleaning
@@ -60,15 +59,28 @@ class ChargingController {
 
       // store data
       const store = await ChargingService.createMasterFrame(cleanedData);
-      if (store) {
-        res.json(ResponseHelper.successMessage("Master frame stored", 201));
+      if (Array.isArray(store)) {
+        const successResponse = store.find((el) => el.status);
+        if (successResponse) {
+          res.json(ResponseHelper.successMessage("Master frame stored", 200));
+        } else {
+          const failedResponses = store.filter((el) => !el.status);
+          if (failedResponses.length > 0) {
+            const errors = failedResponses.map((el) => ({
+              message: "Frame is already exist",
+              pcb_barcode: el.pcb_barcode,
+            }));
+            res.json(ResponseHelper.error(errors, 400));
+          } else {
+            res.json(ResponseHelper.error("Failed to store master frame", 400));
+          }
+        }
       } else {
-        res.json(
-          ResponseHelper.error("Data already exist in Master Frame", 409)
-        );
+        res.json(ResponseHelper.error("Failed to store master frame", 400));
       }
     } catch (error) {
-      res.json(ResponseHelper.error(error, 400));
+      const messageError = error instanceof Error && error.message? error.message: "An unknown error occurred";
+      res.json(ResponseHelper.error(messageError, 400));
     }
   };
 
@@ -114,22 +126,41 @@ class ChargingController {
       // check charging status
       const results = await Promise.all(
         cleanedData.map(async (item) => {
-          const isTrue = await ChargingService.checkChargingStatus(
-            item.pcb_barcode
-          );
+          const {
+            pcb_barcode,
+            sn_code_1,
+            sn_code_2,
+            voltage,
+            current,
+            soc,
+            average_cell_temperature,
+            remaining_charge_time,
+          } = item;
+
+          const isTrue = await ChargingService.checkChargingStatus(pcb_barcode);
+
+          // check high temperature
+          if (average_cell_temperature / 10 > 55) {
+            throw new Error("Temperature is too high");
+          }
+          // check battery full
+          if (soc / 100 === 100) {
+            throw new Error("Battery is full");
+          }
+
           if (isTrue) {
             // store data
             await ChargingService.createLogData(item);
             return {
-              pcb_barcode: item.pcb_barcode,
+              pcb_barcode,
               status: true,
-              sn_code_1: item.sn_code_1,
-              sn_code_2: item.sn_code_2,
-              voltage: item.voltage,
-              current: item.current,
-              soc: item.soc,
-              temperature: item.average_cell_temperature,
-              time_estiminate: item.remaining_charge_time,
+              sn_code_1,
+              sn_code_2,
+              voltage,
+              current,
+              soc,
+              temperature: average_cell_temperature,
+              time_estiminate: remaining_charge_time,
             };
           }
           return null;
@@ -142,11 +173,11 @@ class ChargingController {
           ResponseHelper.success(results.filter((result) => result !== null))
         );
       } else {
-        console.log(results);
-        res.json(ResponseHelper.error("Failed to store data, please check Charging Status", 400));
+        throw new Error("Failed to store data, please check Charging Status");
       }
     } catch (error) {
-      res.json(ResponseHelper.error(error, 400));
+      const messageError = error instanceof Error && error.message? error.message: "An unknown error occurred";
+      res.json(ResponseHelper.error(messageError, 400));
     }
   };
 

@@ -12,7 +12,9 @@ const getAllMasterFrame = async (): Promise<ChargingDto.IMasterFrame[]> => {
   }
 };
 
-const getMasterFrame = async (pcb_barcode: string): Promise<ChargingDto.IMasterFrameOutput> => {
+const getMasterFrame = async (
+  pcb_barcode: string
+): Promise<ChargingDto.IMasterFrameOutput> => {
   try {
     const masterFrame = await prisma.master_frame.findFirst({
       where: {
@@ -21,7 +23,7 @@ const getMasterFrame = async (pcb_barcode: string): Promise<ChargingDto.IMasterF
     });
 
     if (masterFrame) {
-      return masterFrame
+      return masterFrame;
     } else {
       throw new Error(`Master Frame ${pcb_barcode} Not Found `);
     }
@@ -48,57 +50,57 @@ const checkChargingStatus = async (pcb_barcode: string): Promise<boolean> => {
     console.log(error);
     throw new Error("Failed to retrieve master frame data");
   }
-
-}
+};
 
 const createMasterFrame = async (
   payload: ChargingDto.IMasterFrame[]
-): Promise<boolean> => {
-  try {
-    const results = await Promise.all(
-      payload.map(async (item: ChargingDto.IMasterFrame) => {
-        // Check if data exists
-        const isExist = await prisma.master_frame.findFirst({
-          where: {
-            pcb_barcode: item.pcb_barcode,
+) => {
+  const results = await Promise.all(
+    payload.map(async (item: ChargingDto.IMasterFrame) => {
+      const { pcb_barcode, sn_code_1, sn_code_2 } = item;
+
+      // Check if data exists
+      const isExist = await prisma.master_frame.findFirst({
+        where: {
+          pcb_barcode,
+        },
+      });
+
+      // If data does not exist, create master frame data and frame history data
+      if (!isExist) {
+        await prisma.master_frame.create({
+          data: {
+            pcb_barcode,
+            sn_code_1,
+            sn_code_2,
+            charging: true,
           },
         });
 
-        // Create or update master frame data
-        if (!isExist) {
-          await prisma.master_frame.create({
-            data: {
-              pcb_barcode: item.pcb_barcode,
-              sn_code_1: item.sn_code_1,
-              sn_code_2: item.sn_code_2,
-              charging: true,
-            },
-          });
-          // Create frame history data
-          await prisma.frame_history.create({
-            data: {
-              pcb_barcode: item.pcb_barcode,
-              start_time: moment()
-                .tz("Asia/Jakarta")
-                .format("YYYY-MM-DD HH:mm:ss"),
-              charging: true,
-            },
-          });
-          return true;
-        } else {
-          throw new Error(`Master Frame ${item.pcb_barcode} Already Exists`);
-        }
-      })
-    );
+        await prisma.frame_history.create({
+          data: {
+            pcb_barcode,
+            start_time: moment()
+              .tz("Asia/Jakarta")
+              .format("YYYY-MM-DD HH:mm:ss"),
+            charging: true,
+          },
+        });
 
-    return results.every((result) => result); // Returns true if all items in the results array are true
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
+        return { status: true, pcb_barcode };
+      }
+
+      // if data exists, return false and pcb_barcode
+      return { status: false, pcb_barcode }
+    })
+  );
+  return results
 };
 
-const updateMasterFrame = async (pcbBarcode: string, charging: boolean): Promise<boolean> => {
+const updateMasterFrame = async (
+  pcbBarcode: string,
+  charging: boolean
+): Promise<boolean> => {
   try {
     const masterFrame = await prisma.master_frame.findFirst({
       where: {
@@ -109,7 +111,7 @@ const updateMasterFrame = async (pcbBarcode: string, charging: boolean): Promise
     if (masterFrame) {
       await prisma.master_frame.update({
         where: {
-          pcb_barcode: pcbBarcode
+          pcb_barcode: pcbBarcode,
         },
         data: {
           charging: charging,
@@ -120,9 +122,7 @@ const updateMasterFrame = async (pcbBarcode: string, charging: boolean): Promise
       await prisma.frame_history.create({
         data: {
           pcb_barcode: pcbBarcode,
-          start_time: moment()
-            .tz("Asia/Jakarta")
-            .format("YYYY-MM-DD HH:mm:ss"),
+          start_time: moment().tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss"),
           charging: charging,
         },
       });
@@ -134,7 +134,7 @@ const updateMasterFrame = async (pcbBarcode: string, charging: boolean): Promise
     console.log(error);
     return false;
   }
-}
+};
 
 const createLogData = async (
   payload: ChargingDto.IStoreLog
@@ -248,7 +248,7 @@ const updateFrameHistory = async (payload: any): Promise<boolean> => {
             id: "desc",
           },
           take: 1,
-        })
+        });
 
         if (isExist.length === 0) {
           throw new Error(`Frame History ${item.pcb_barcode} Not Found`);
