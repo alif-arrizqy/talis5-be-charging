@@ -15,12 +15,12 @@ class RectiController {
         //   timeout: 5000,
         // })
         //   .then((response) => {
-        //     res.json(ResponseHelper.success("Power module is on"));
+        //     res.json(ResponseHelper.successMessage("Power module is on"));
         //   })
         //   .catch((error) => {
         //     res.json(ResponseHelper.error(error.message, 500));
         //   });
-        res.json(ResponseHelper.success("Power module is on"));
+        res.json(ResponseHelper.successMessage("Power module is on"));
       } catch (error) {
         res.json(ResponseHelper.error("Failed to turn on power module", 500));
       }
@@ -33,12 +33,12 @@ class RectiController {
         //   timeout: 5000,
         // })
         //   .then((response) => {
-        //     res.json(ResponseHelper.success("Power module is off"));
+        //     res.json(ResponseHelper.successMessage("Power module is off"));
         //   })
         //   .catch((error) => {
         //     res.json(ResponseHelper.error(error.message, 500));
         //   });
-        res.json(ResponseHelper.success("Power module is off"));
+        res.json(ResponseHelper.successMessage("Power module is off"));
       } catch (error) {
         res.json(ResponseHelper.error("Failed to turn off power module", 500));
       }
@@ -81,9 +81,9 @@ class RectiController {
         //   timeout: 5000,
         // });
 
-        res.json(ResponseHelper.success("Success update rectifier data"));
+        res.json(ResponseHelper.successMessage("Success update rectifier data"));
       } else {
-        res.json(ResponseHelper.success("Success create rectifier data"));
+        res.json(ResponseHelper.successMessage("Success create rectifier data"));
       }
     } catch (error) {
       res.json(ResponseHelper.error(error, 400));
@@ -93,9 +93,9 @@ class RectiController {
   setDefaultValue = async (req: Request, res: Response) => {
     const data = await RectiService.createDefaultValue();
     if (data) {
-      res.json(ResponseHelper.success("Set default value success"));
+      res.json(ResponseHelper.successMessage("Set default value success"));
     } else {
-      res.json(ResponseHelper.success("Success create default value"));
+      res.json(ResponseHelper.successMessage("Success create default value"));
     }
   };
 
@@ -113,14 +113,16 @@ class RectiController {
         // })
         //   .then((response) => {
         //     res.json(
-        //       ResponseHelper.success(`Set Rectifier Voltage to ${data} V`)
+        //       ResponseHelper.successMessage(`Success set Rectifier Voltage`)
         //     );
         //   })
         //   .catch((error) => {
         //     res.json(ResponseHelper.error(error.message, 500));
         //   });
 
-        res.json(ResponseHelper.success(`Set Rectifier Voltage to ${data} V`));
+        res.json(
+          ResponseHelper.successMessage(`Success set Rectifier Voltage`)
+        );
       } else {
         res.json(ResponseHelper.error(`Missing Rectifier Data`, 404));
       }
@@ -143,14 +145,14 @@ class RectiController {
         // })
         //   .then((response) => {
         //     res.json(
-        //       ResponseHelper.success(`Set Rectifier Current to ${data} A`)
+        //       ResponseHelper.successMessage(`Success set Rectifier Current`)
         //     );
         //   })
         //   .catch((error) => {
         //     res.json(ResponseHelper.error(error.message, 500));
         //   });
 
-        res.json(ResponseHelper.success(`Set Rectifier Current to ${data} A`));
+        res.json(ResponseHelper.successMessage(`Success set Rectifier Current`));
       } else {
         res.json(ResponseHelper.error(`Missing Rectifier Data`, 404));
       }
