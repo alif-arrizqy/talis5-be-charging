@@ -33,7 +33,7 @@ const getMasterFrame = async (
   }
 };
 
-const checkChargingStatus = async (pcb_barcode: string): Promise<boolean> => {
+const checkChargingStatusWithPcbBarcode = async (pcb_barcode: string): Promise<boolean> => {
   try {
     const masterFrame = await prisma.master_frame.findFirst({
       where: {
@@ -49,6 +49,33 @@ const checkChargingStatus = async (pcb_barcode: string): Promise<boolean> => {
   } catch (error) {
     console.log(error);
     throw new Error("Failed to retrieve master frame data");
+  }
+};
+
+const checkChargingStatus = async () => {
+  try {
+    const masterFrames = await prisma.master_frame.findMany({
+      where: {
+        charging: true,
+      },
+    });
+
+    if (masterFrames && masterFrames.length > 0) {
+      interface IResult {
+        pcb_barcode: string;
+        charging: boolean;
+      }
+      const results: IResult[] = masterFrames.map(frame => ({
+        pcb_barcode: frame.pcb_barcode,
+        charging: frame.charging,
+      }));
+      return results;
+    } else {
+      throw new Error(`Did not find any charging running`);
+    }
+  } catch (error) {
+    console.log(error);
+    throw new Error(`Did not find any charging running`);
   }
 };
 
@@ -317,6 +344,7 @@ const updateFrameHistory = async (payload: any): Promise<boolean> => {
 export {
   getAllMasterFrame,
   getMasterFrame,
+  checkChargingStatusWithPcbBarcode,
   checkChargingStatus,
   createMasterFrame,
   updateMasterFrame,

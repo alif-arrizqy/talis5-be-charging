@@ -52,6 +52,7 @@ class ChargingController {
     }
   };
 
+  // Store master frame
   storeMasterFrame = async (req: Request, res: Response) => {
     try {
       // data cleaning
@@ -137,7 +138,7 @@ class ChargingController {
             remaining_charge_time,
           } = item;
 
-          const isTrue = await ChargingService.checkChargingStatus(pcb_barcode);
+          const isTrue = await ChargingService.checkChargingStatusWithPcbBarcode(pcb_barcode);
 
           // check high temperature
           if (average_cell_temperature / 10 > 55) {
@@ -153,7 +154,7 @@ class ChargingController {
             await ChargingService.createLogData(item);
             return {
               pcb_barcode,
-              status: true,
+              charging: true,
               sn_code_1,
               sn_code_2,
               voltage,
@@ -162,19 +163,33 @@ class ChargingController {
               temperature: average_cell_temperature,
               time_estiminate: remaining_charge_time,
             };
+          } else {
+            return {
+              pcb_barcode,
+              charging: false,
+              sn_code_1,
+              sn_code_2,
+              voltage: null,
+              current: null,
+              soc: null,
+              temperature: null,
+              time_estiminate: null,
+            };
           }
-          return null;
+          // return null;
         })
       );
 
       // Check if all data has been stored
+      console.log(results);
       if (results.every((result) => result)) {
         res.json(
           ResponseHelper.success(results.filter((result) => result !== null))
         );
-      } else {
-        throw new Error("Failed to store data, please check Charging Status");
-      }
+      } 
+      // else {
+      //   throw new Error("Failed to store data, please check Charging Status");
+      // }
     } catch (error) {
       const messageError = error instanceof Error && error.message? error.message: "An unknown error occurred";
       res.json(ResponseHelper.error(messageError, 400));
@@ -218,6 +233,16 @@ class ChargingController {
       res.json(ResponseHelper.error(error, 400));
     }
   };
+
+  checkChargingStatus = async (req: Request, res: Response) => {
+    try {
+      const status = await ChargingService.checkChargingStatus();
+      res.json(ResponseHelper.success(status));
+    } catch (error) {
+      const messageError = error instanceof Error && error.message? error.message: "An unknown error occurred";
+      res.json(ResponseHelper.error(messageError, 400));
+    }
+  }
 }
 
 export default ChargingController;

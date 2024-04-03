@@ -11,11 +11,16 @@ export const getMasterFrame = async (
   return await ChargingDal.getMasterFrame(pcb_barcode);
 }
 
-export const checkChargingStatus = async (
+export const checkChargingStatusWithPcbBarcode = async (
   pcb_barcode: string
 ): Promise<boolean> => {
-  return await ChargingDal.checkChargingStatus(pcb_barcode);
-}
+  return await ChargingDal.checkChargingStatusWithPcbBarcode(pcb_barcode);
+};
+
+export const checkChargingStatus =
+  async (): Promise<ChargingDto.IMasterFrameOutput> => {
+    return await ChargingDal.checkChargingStatus();
+  };
 
 export const createMasterFrame = async (
   payload: any

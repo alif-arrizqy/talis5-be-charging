@@ -20,6 +20,7 @@ class ChargingRoutes {
     this.router.put("/frame-history", this.controller.updateFrameHistory);
     
     this.router.get("/data", this.controller.storeChargingData);
+    this.router.get("/status", this.controller.checkChargingStatus);
   }
 }
 
