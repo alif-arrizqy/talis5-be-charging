@@ -259,13 +259,6 @@ const updateFrameHistory = async (payload: any): Promise<boolean> => {
   try {
     const results = await Promise.all(
       payload.map(async (item: ChargingDto.IFrameHistory) => {
-        // Check if data exists
-        // const isExist = await prisma.frame_history.findFirst({
-        //   where: {
-        //     pcb_barcode: item.pcb_barcode,
-        //   },
-        // });
-
         const isExist = await prisma.frame_history.findMany({
           where: {
             pcb_barcode: item.pcb_barcode,
