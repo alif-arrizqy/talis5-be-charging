@@ -10,6 +10,8 @@ RUN npm install --silent
 
 RUN npm install -g typescript
 
+RUN npm install --save-dev @types/express
+
 COPY . /usr/src/app
 
 # Generate Prisma Client
