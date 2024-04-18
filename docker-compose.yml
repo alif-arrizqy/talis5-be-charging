@@ -10,7 +10,8 @@ services:
       - "${PRODUCTION_PORT}:${PRODUCTION_PORT}"
     volumes:
       - ./src:/app/src
-      - node_modules:/app/node_modules
+      - node_modules:/usr/src/app/node_modules
 
 volumes:
   node_modules:
+  talis5-chg-volume:
