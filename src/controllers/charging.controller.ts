@@ -223,21 +223,40 @@ class ChargingController {
   };
 
   // Update frame history
-  updateFrameHistory = async (req: Request, res: Response) => {
-    try {
-      // data cleaning
-      const cleanedData = await this.preprocessing(req, res);
-      // store data
-      const storeData = await ChargingService.updateFrameHistory(cleanedData);
-      if (storeData) {
-        res.json(ResponseHelper.successMessage("Frame history updated", 200));
+updateFrameHistory = async (req: Request, res: Response) => {
+  try {
+    // data cleaning
+    const cleanedData = await this.preprocessing(req, res);
+    // store data
+    const update = await ChargingService.updateFrameHistory(cleanedData);
+    if (Array.isArray(update)) {
+      const successResponses = update.filter((el) => el.status);
+      if (successResponses.length > 0) {
+        const messages = successResponses.map((el) => ({
+          message: "Frame history updated",
+          pcb_barcode: el.pcb_barcode,
+        }));
+        res.json(ResponseHelper.success(messages));
       } else {
-        res.json(ResponseHelper.error("Data frame history not found", 404));
+        const failedResponses = update.filter((el) => !el.status);
+        if (failedResponses.length > 0) {
+          const errors = failedResponses.map((el) => ({
+            message: "Frame charging is false",
+            pcb_barcode: el.pcb_barcode,
+          }));
+          res.json(ResponseHelper.error(errors, 400));
+        } else {
+          res.json(ResponseHelper.error("Failed to update frame history", 400));
+        }
       }
-    } catch (error) {
-      res.json(ResponseHelper.error(error, 400));
+    } else {
+      res.json(ResponseHelper.error("Failed to update frame history", 400));
     }
-  };
+  } catch (error) {
+    const messageError = error instanceof Error && error.message? error.message: "An unknown error occurred";
+    res.json(ResponseHelper.error(messageError, 400));
+  }
+};
 
   checkChargingStatus = async (req: Request, res: Response) => {
     try {

@@ -255,83 +255,77 @@ const getFrameHistory = async (
   }
 };
 
-const updateFrameHistory = async (payload: any): Promise<boolean> => {
-  try {
-    const results = await Promise.all(
-      payload.map(async (item: ChargingDto.IFrameHistory) => {
-        const isExist = await prisma.frame_history.findMany({
+const updateFrameHistory = async (payload: ChargingDto.IFrameHistory[]) => {
+  const results = await Promise.all(
+    payload.map(async (item: ChargingDto.IFrameHistory) => {
+      const isExist = await prisma.frame_history.findMany({
+        where: {
+          pcb_barcode: item.pcb_barcode,
+          charging: true,
+        },
+        orderBy: {
+          id: "desc",
+        },
+        take: 1,
+      });
+
+      if (isExist.length === 0) {
+        return { status: false, pcb_barcode: item.pcb_barcode };
+      }
+
+      // calculate charging time
+      const end_time = moment()
+        .tz("Asia/Jakarta")
+        .format("YYYY-MM-DD HH:mm:ss");
+      const duration = moment.duration(
+        moment(end_time).diff(isExist[0]?.start_time)
+      );
+
+      const hours = Math.floor(duration.asHours());
+      const minutes = duration.minutes();
+
+      // Format the result
+      const formattedResult = `${hours} hours ${minutes} minutes`;
+
+      // Update frame history data
+      if (isExist) {
+        await prisma.frame_history.update({
           where: {
-            pcb_barcode: item.pcb_barcode,
-            charging: true,
+            id: isExist[0]?.id,
           },
-          orderBy: {
-            id: "desc",
+          data: {
+            voltage: item.voltage,
+            current: item.current,
+            remaining_capacity: item.remaining_capacity,
+            soc: item.soc,
+            soh: item.soh,
+            max_cell_voltage: item.max_cell_voltage,
+            min_cell_voltage: item.min_cell_voltage,
+            cell_voltage_diff: item.cell_voltage_diff,
+            max_cell_temperature: item.max_cell_temperature,
+            min_cell_temperature: item.min_cell_temperature,
+            remaining_charge_time: item.remaining_charge_time,
+            remaining_discharge_time: item.remaining_discharge_time,
+            end_time: end_time,
+            charging_time: formattedResult,
+            charging: false,
           },
-          take: 1,
         });
 
-        if (isExist.length === 0) {
-          throw new Error(`Frame History ${item.pcb_barcode} Not Found`);
-        }
-
-        // calculate charging time
-        const end_time = moment()
-          .tz("Asia/Jakarta")
-          .format("YYYY-MM-DD HH:mm:ss");
-        const duration = moment.duration(
-          moment(end_time).diff(isExist[0]?.start_time)
-        );
-
-        const hours = Math.floor(duration.asHours());
-        const minutes = duration.minutes();
-
-        // Format the result
-        const formattedResult = `${hours} hours ${minutes} minutes`;
-
-        // Update frame history data
-        if (isExist) {
-          await prisma.frame_history.update({
-            where: {
-              id: isExist[0]?.id,
-            },
-            data: {
-              voltage: item.voltage,
-              current: item.current,
-              remaining_capacity: item.remaining_capacity,
-              soc: item.soc,
-              soh: item.soh,
-              max_cell_voltage: item.max_cell_voltage,
-              min_cell_voltage: item.min_cell_voltage,
-              cell_voltage_diff: item.cell_voltage_diff,
-              max_cell_temperature: item.max_cell_temperature,
-              min_cell_temperature: item.min_cell_temperature,
-              remaining_charge_time: item.remaining_charge_time,
-              remaining_discharge_time: item.remaining_discharge_time,
-              end_time: end_time,
-              charging_time: formattedResult,
-              charging: false,
-            },
-          });
-
-          // update master frame data
-          await prisma.master_frame.update({
-            where: {
-              pcb_barcode: item.pcb_barcode,
-            },
-            data: {
-              charging: false,
-            },
-          });
-        }
-
-        return true;
-      })
-    );
-    return results.every((result) => result); // Returns true if all items in the results array are true
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
+        // update master frame data
+        await prisma.master_frame.update({
+          where: {
+            pcb_barcode: item.pcb_barcode,
+          },
+          data: {
+            charging: false,
+          },
+        });
+      }
+      return { status: true, pcb_barcode: item.pcb_barcode}
+    })
+  );
+  return results;
 };
 
 export {
