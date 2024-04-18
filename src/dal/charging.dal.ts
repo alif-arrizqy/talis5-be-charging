@@ -238,7 +238,7 @@ const getFrameHistory = async (
   pcb_barcode: string
 ): Promise<ChargingDto.IFrameHistoryOutput> => {
   try {
-    const frameHistory = await prisma.frame_history.findFirst({
+    const frameHistory = await prisma.frame_history.findMany({
       where: {
         pcb_barcode: pcb_barcode,
       },
