@@ -1,9 +1,24 @@
 -- CreateTable
+CREATE TABLE "rectifier" (
+    "id" SERIAL NOT NULL,
+    "voltage" INTEGER NOT NULL,
+    "current" INTEGER NOT NULL,
+    "max_voltage_cell" INTEGER NOT NULL,
+    "min_voltage_cell" INTEGER NOT NULL,
+    "total_cell" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "rectifier_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "master_frame" (
     "id" SERIAL NOT NULL,
     "pcb_barcode" TEXT NOT NULL,
     "sn_code_1" TEXT NOT NULL,
     "sn_code_2" TEXT NOT NULL,
+    "charging" BOOLEAN NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -19,9 +34,6 @@ CREATE TABLE "frame_logger" (
     "remaining_capacity" INTEGER NOT NULL,
     "average_cell_temperature" INTEGER NOT NULL,
     "env_temperature" INTEGER NOT NULL,
-    "warning_flag" TEXT NOT NULL,
-    "protection_flag" TEXT NOT NULL,
-    "fault_status_flag" TEXT NOT NULL,
     "soc" INTEGER NOT NULL,
     "soh" INTEGER NOT NULL,
     "full_charged_cap" INTEGER NOT NULL,
@@ -65,22 +77,40 @@ CREATE TABLE "frame_logger" (
 CREATE TABLE "frame_history" (
     "id" SERIAL NOT NULL,
     "pcb_barcode" TEXT NOT NULL,
-    "voltage" INTEGER NOT NULL,
-    "current" INTEGER NOT NULL,
-    "remaining_capacity" INTEGER NOT NULL,
-    "soc" INTEGER NOT NULL,
-    "soh" INTEGER NOT NULL,
-    "max_cell_voltage" INTEGER NOT NULL,
-    "min_cell_voltage" INTEGER NOT NULL,
-    "cell_voltage_diff" INTEGER NOT NULL,
-    "max_cell_temperature" INTEGER NOT NULL,
-    "min_cell_temperature" INTEGER NOT NULL,
-    "remaining_charge_time" INTEGER NOT NULL,
-    "remaining_discharge_time" INTEGER NOT NULL,
+    "voltage" INTEGER,
+    "current" INTEGER,
+    "remaining_capacity" INTEGER,
+    "soc" INTEGER,
+    "soh" INTEGER,
+    "max_cell_voltage" INTEGER,
+    "min_cell_voltage" INTEGER,
+    "cell_voltage_diff" INTEGER,
+    "max_cell_temperature" INTEGER,
+    "min_cell_temperature" INTEGER,
+    "remaining_charge_time" INTEGER,
+    "remaining_discharge_time" INTEGER,
+    "charging" BOOLEAN,
+    "error_status" BOOLEAN,
+    "start_time" TEXT,
+    "end_time" TEXT,
+    "charging_time" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "frame_history_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "frame_logger_error" (
+    "id" SERIAL NOT NULL,
+    "date_time" TEXT NOT NULL,
+    "pcb_barcode" TEXT NOT NULL,
+    "error_flag" TEXT,
+    "error_case" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "frame_logger_error_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
