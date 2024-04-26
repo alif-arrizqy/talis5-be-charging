@@ -40,6 +40,10 @@ export const createLogData = async (
   return await ChargingDal.createLogData(payload);
 }
 
+export const createErrorLog = async (payload: any) => {
+  return await ChargingDal.createErrorLog(payload);
+}
+
 export const getAllFrameHistory = async (): Promise<ChargingDto.IFrameHistoryOutput[]> => {
   return await ChargingDal.getAllFrameHistory();
 }
