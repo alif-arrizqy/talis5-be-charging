@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { ResponseHelper } from "../helpers/response/response";
 import { dataCleaning } from "../helpers/preprocessing/data";
 import * as ChargingService from "../services/charging.service";
+import { CheckErrorLog } from "../helpers/errorFlagCheck";
 
 class ChargingController {
   // Helper function to fetch battery data
@@ -152,16 +153,36 @@ class ChargingController {
           if (isTrue) {
             // store data
             await ChargingService.createLogData(item);
+
+            // check error log            
+            const checkFlag = await new CheckErrorLog()
+            const warningFlag = await checkFlag.warningFlagCheck(item);
+            const protectionFlag = await checkFlag.protectionFlagCheck(item);
+            const faultStatusFlag = await checkFlag.faultStatusFlagCheck(item);
+            const error_status = warningFlag.length > 0 || protectionFlag.length > 0 || faultStatusFlag.length > 0 ? true : false;
+
+            if (error_status) {
+              // store error log
+              await ChargingService.createErrorLog({
+                pcb_barcode,
+                warningFlag,
+                protectionFlag,
+                faultStatusFlag,
+              });
+            }
+
             return {
               pcb_barcode,
               charging: true,
               sn_code_1,
               sn_code_2,
-              voltage,
-              current,
-              soc,
-              temperature: average_cell_temperature,
+              voltage: voltage / 100,
+              current: current / 100,
+              soc: soc / 100,
+              temperature: average_cell_temperature / 10,
               time_estiminate: remaining_charge_time,
+              error_status: error_status,
+              error_log: { warningFlag, protectionFlag, faultStatusFlag }
             };
           } else {
             return {
@@ -174,6 +195,11 @@ class ChargingController {
               soc: null,
               temperature: null,
               time_estiminate: null,
+              error_log: {
+                warningFlag: [],
+                protectionFlag: [],
+                faultStatusFlag: []
+              }
             };
           }
           // return null;
