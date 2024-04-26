@@ -1,6 +1,7 @@
 import { prisma } from "../index";
 import * as ChargingDto from "../dto/charging.dto";
 import moment from "moment-timezone";
+import { CheckErrorLog } from "../helpers/errorFlagCheck";
 
 const getAllMasterFrame = async (): Promise<ChargingDto.IMasterFrame[]> => {
   try {
@@ -176,9 +177,6 @@ const createLogData = async (
         remaining_capacity: payload.remaining_capacity,
         average_cell_temperature: payload.average_cell_temperature,
         env_temperature: payload.env_temperature,
-        warning_flag: JSON.stringify(payload.warning_flag),
-        protection_flag: JSON.stringify(payload.protection_flag),
-        fault_status_flag: JSON.stringify(payload.fault_status_flag),
         soc: payload.soc,
         soh: payload.soh,
         full_charged_cap: payload.full_charged_cap,
@@ -222,6 +220,61 @@ const createLogData = async (
   }
 };
 
+const createErrorLog = async (payload: any) => {
+  try {
+    // warning_flag
+    if (payload.warningFlag.length > 0) {
+      payload.warningFlag.map(async (item: any) => {
+        await prisma.frame_logger_error.create({
+          data: {
+            date_time: moment()
+              .tz("Asia/Jakarta")
+              .format("YYYY-MM-DD HH:mm:ss"),
+            pcb_barcode: payload.pcb_barcode,
+            error_flag: "warning_flag",
+            error_case: item,
+          },
+        });
+      });
+    }
+
+    // protection_flag
+    if (payload.protectionFlag.length > 0) {
+      payload.protectionFlag.map(async (item: any) => {
+        await prisma.frame_logger_error.create({
+          data: {
+            date_time: moment()
+              .tz("Asia/Jakarta")
+              .format("YYYY-MM-DD HH:mm:ss"),
+            pcb_barcode: payload.pcb_barcode,
+            error_flag: "protection_flag",
+            error_case: item,
+          },
+        });
+      });
+    }
+
+    // fault_status_flag
+    if (payload.faultStatusFlag.length > 0) {
+      payload.faultStatusFlag.map(async (item: any) => {
+        await prisma.frame_logger_error.create({
+          data: {
+            date_time: moment()
+              .tz("Asia/Jakarta")
+              .format("YYYY-MM-DD HH:mm:ss"),
+            pcb_barcode: payload.pcb_barcode,
+            error_flag: "fault_status_flag",
+            error_case: item,
+          },
+        });
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    throw new Error("Failed to create error log");
+  }
+};
+
 const getAllFrameHistory = async (): Promise<
   ChargingDto.IFrameHistoryOutput[]
 > => {
@@ -238,6 +291,7 @@ const getFrameHistory = async (
   pcb_barcode: string
 ): Promise<ChargingDto.IFrameHistoryOutput> => {
   try {
+    // inner join with frame_logger_error
     const frameHistory = await prisma.frame_history.findMany({
       where: {
         pcb_barcode: pcb_barcode,
@@ -287,6 +341,13 @@ const updateFrameHistory = async (payload: ChargingDto.IFrameHistory[]) => {
       // Format the result
       const formattedResult = `${hours} hours ${minutes} minutes`;
 
+      // check error log
+      const checkFlag = await new CheckErrorLog()
+      const warningFlag = await checkFlag.warningFlagCheck(item);
+      const protectionFlag = await checkFlag.protectionFlagCheck(item);
+      const faultStatusFlag = await checkFlag.faultStatusFlagCheck(item);
+      const error_status = warningFlag.length > 0 || protectionFlag.length > 0 || faultStatusFlag.length > 0 ? true : false;
+
       // Update frame history data
       if (isExist) {
         await prisma.frame_history.update({
@@ -309,6 +370,7 @@ const updateFrameHistory = async (payload: ChargingDto.IFrameHistory[]) => {
             end_time: end_time,
             charging_time: formattedResult,
             charging: false,
+            error_status: error_status
           },
         });
 
@@ -322,7 +384,7 @@ const updateFrameHistory = async (payload: ChargingDto.IFrameHistory[]) => {
           },
         });
       }
-      return { status: true, pcb_barcode: item.pcb_barcode}
+      return { status: true, pcb_barcode: item.pcb_barcode };
     })
   );
   return results;
@@ -336,6 +398,7 @@ export {
   createMasterFrame,
   updateMasterFrame,
   createLogData,
+  createErrorLog,
   getAllFrameHistory,
   getFrameHistory,
   updateFrameHistory,
