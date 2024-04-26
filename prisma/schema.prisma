@@ -47,9 +47,6 @@ model frame_logger {
   remaining_capacity Int
   average_cell_temperature Int
   env_temperature Int
-  warning_flag String
-  protection_flag String
-  fault_status_flag String
   soc Int
   soh Int
   full_charged_cap Int
@@ -104,9 +101,20 @@ model frame_history {
   remaining_charge_time Int?
   remaining_discharge_time Int?
   charging Boolean?
+  error_status Boolean?
   start_time String?
   end_time String?
   charging_time String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model frame_logger_error {
+  id Int @default(autoincrement()) @id
+  date_time String
+  pcb_barcode String
+  error_flag String?
+  error_case String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
