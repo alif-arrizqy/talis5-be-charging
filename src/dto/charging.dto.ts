@@ -38,9 +38,6 @@ export interface IStoreLog {
   remaining_capacity: number;
   average_cell_temperature: number;
   env_temperature: number;
-  warning_flag: any;
-  protection_flag: any;
-  fault_status_flag: any;
   soc: number;
   soh: number;
   full_charged_cap: number;
