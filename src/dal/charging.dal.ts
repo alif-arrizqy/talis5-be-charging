@@ -34,7 +34,9 @@ const getMasterFrame = async (
   }
 };
 
-const checkChargingStatusWithPcbBarcode = async (pcb_barcode: string): Promise<boolean> => {
+const checkChargingStatusWithPcbBarcode = async (
+  pcb_barcode: string
+): Promise<boolean> => {
   try {
     const masterFrame = await prisma.master_frame.findFirst({
       where: {
@@ -66,7 +68,7 @@ const checkChargingStatus = async () => {
         pcb_barcode: string;
         charging: boolean;
       }
-      const results: IResult[] = masterFrames.map(frame => ({
+      const results: IResult[] = masterFrames.map((frame) => ({
         pcb_barcode: frame.pcb_barcode,
         charging: frame.charging,
       }));
@@ -80,9 +82,7 @@ const checkChargingStatus = async () => {
   }
 };
 
-const createMasterFrame = async (
-  payload: ChargingDto.IMasterFrame[]
-) => {
+const createMasterFrame = async (payload: ChargingDto.IMasterFrame[]) => {
   const results = await Promise.all(
     payload.map(async (item: ChargingDto.IMasterFrame) => {
       const { pcb_barcode, sn_code_1, sn_code_2 } = item;
@@ -119,10 +119,10 @@ const createMasterFrame = async (
       }
 
       // if data exists, return false and pcb_barcode
-      return { status: false, pcb_barcode }
+      return { status: false, pcb_barcode };
     })
   );
-  return results
+  return results;
 };
 
 const updateMasterFrame = async (
@@ -146,14 +146,18 @@ const updateMasterFrame = async (
         },
       });
 
-      // create frame history data
-      await prisma.frame_history.create({
-        data: {
-          pcb_barcode: pcbBarcode,
-          start_time: moment().tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss"),
-          charging: charging,
-        },
-      });
+      if (charging) {
+        // create frame history data
+        await prisma.frame_history.create({
+          data: {
+            pcb_barcode: pcbBarcode,
+            start_time: moment()
+              .tz("Asia/Jakarta")
+              .format("YYYY-MM-DD HH:mm:ss"),
+            charging: charging,
+          },
+        });
+      }
       return true;
     } else {
       throw new Error(`Master Frame ${pcbBarcode} Not Found `);
@@ -291,15 +295,75 @@ const getFrameHistory = async (
   pcb_barcode: string
 ): Promise<ChargingDto.IFrameHistoryOutput> => {
   try {
-    // inner join with frame_logger_error
     const frameHistory = await prisma.frame_history.findMany({
       where: {
         pcb_barcode: pcb_barcode,
       },
+      orderBy: { id: "desc" },
     });
 
-    if (frameHistory) {
-      return frameHistory;
+    const isError = frameHistory.filter((item) => item.error_status === true);
+
+    // if error_status is true
+    if (isError.length > 0) {
+      // find frame logger error
+      const frameLoggerError = await prisma.frame_logger_error.findMany({
+        where: {
+          pcb_barcode: pcb_barcode,
+        },
+        orderBy: { id: "desc" },
+      });
+
+      // collect error log data per error flag
+      const warningFlag = frameLoggerError.filter(
+        (item) => item.error_flag === "warning_flag"
+      );
+      const protectionFlag = frameLoggerError.filter(
+        (item) => item.error_flag === "protection_flag"
+      );
+      const faultStatusFlag = frameLoggerError.filter(
+        (item) => item.error_flag === "fault_status_flag"
+      );
+
+      // get date_time, pcb_barcode, error_flag, error_case
+      const warningFlagCase = warningFlag.map((item) => {
+        return {
+          date_time: item.date_time,
+          pcb_barcode: item.pcb_barcode,
+          error_flag: item.error_flag,
+          error_case: item.error_case,
+        };
+      });
+
+      const protectionFlagCase = protectionFlag.map((item) => {
+        return {
+          date_time: item.date_time,
+          pcb_barcode: item.pcb_barcode,
+          error_flag: item.error_flag,
+          error_case: item.error_case,
+        };
+      });
+
+      const faultStatusFlagCase = faultStatusFlag.map((item) => {
+        return {
+          date_time: item.date_time,
+          pcb_barcode: item.pcb_barcode,
+          error_flag: item.error_flag,
+          error_case: item.error_case,
+        };
+      });
+
+      // combine frame history data and error log data
+      const result = frameHistory.map((item) => ({
+        ...item,
+        errorLog: {
+          warningFlag: warningFlagCase,
+          protectionFlag: protectionFlagCase,
+          faultStatusFlag: faultStatusFlagCase,
+        },
+      }));
+
+      return result;
     } else {
       throw new Error(`Frame History ${pcb_barcode} Not Found`);
     }
@@ -342,11 +406,16 @@ const updateFrameHistory = async (payload: ChargingDto.IFrameHistory[]) => {
       const formattedResult = `${hours} hours ${minutes} minutes`;
 
       // check error log
-      const checkFlag = await new CheckErrorLog()
+      const checkFlag = await new CheckErrorLog();
       const warningFlag = await checkFlag.warningFlagCheck(item);
       const protectionFlag = await checkFlag.protectionFlagCheck(item);
       const faultStatusFlag = await checkFlag.faultStatusFlagCheck(item);
-      const error_status = warningFlag.length > 0 || protectionFlag.length > 0 || faultStatusFlag.length > 0 ? true : false;
+      const error_status =
+        warningFlag.length > 0 ||
+        protectionFlag.length > 0 ||
+        faultStatusFlag.length > 0
+          ? true
+          : false;
 
       // Update frame history data
       if (isExist) {
@@ -370,7 +439,7 @@ const updateFrameHistory = async (payload: ChargingDto.IFrameHistory[]) => {
             end_time: end_time,
             charging_time: formattedResult,
             charging: false,
-            error_status: error_status
+            error_status: error_status,
           },
         });
 
