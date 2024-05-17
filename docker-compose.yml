@@ -6,10 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: always
+    env_file:
+      - .env
     ports:
       - "${PRODUCTION_PORT}:${PRODUCTION_PORT}"
-    volumes:
-      - ./src:/app/src
-
-volumes:
-  talis5-chg-volume:
