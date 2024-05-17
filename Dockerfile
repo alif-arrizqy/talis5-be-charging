@@ -12,6 +12,9 @@ COPY . .
 # Install dependencies
 RUN npm install --silent
 
+# Install typescript -g
+RUN npm install -g typescript
+
 # Generate Prisma Client
 RUN npx prisma generate
 
