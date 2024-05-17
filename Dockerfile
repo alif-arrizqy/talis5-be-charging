@@ -9,9 +9,6 @@ WORKDIR /usr/src/app
 # Copy package.json and package-lock.json first to leverage Docker cache
 COPY package*.json ./
 
-# Build the app
-RUN npm run build
-
 # Install dependencies
 RUN npm install --silent
 
@@ -24,13 +21,14 @@ RUN npm install --save-dev @types/node @types/express @types/cors
 # Copy all files to the working directory
 COPY . .
 
-
 # Generate Prisma Client
 RUN npx prisma generate
 
 # Apply Prisma migrations
 RUN npx prisma migrate deploy
 
+# Build the app
+RUN npm run build
 
 # Start the app
 CMD ["npm", "run", "start"]
