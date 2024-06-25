@@ -58,9 +58,10 @@ class ChargingController {
     try {
       // data cleaning
       const cleanedData = await this.preprocessing(req, res);
+      const firstData = [cleanedData[0]];
 
       // store data
-      const store = await ChargingService.createMasterFrame(cleanedData);
+      const store = await ChargingService.createMasterFrame(firstData);
       if (Array.isArray(store)) {
         const successResponse = store.find((el) => el.status);
         if (successResponse) {
@@ -124,10 +125,11 @@ class ChargingController {
     try {
       // data cleaning
       const cleanedData = (await this.preprocessing(req, res)) ?? [];
+      const firstData = [cleanedData[0]];
 
       // check charging status
       const results = await Promise.all(
-        cleanedData.map(async (item) => {
+        firstData.map(async (item) => {
           const {
             pcb_barcode,
             sn_code_1,
@@ -171,6 +173,8 @@ class ChargingController {
             return {
               pcb_barcode,
               charging: true,
+              battery_status,
+              temperature_status,
               sn_code_1,
               sn_code_2,
               voltage: voltage / 100,
@@ -185,6 +189,8 @@ class ChargingController {
             return {
               pcb_barcode,
               charging: false,
+              battery_status,
+              temperature_status,
               sn_code_1,
               sn_code_2,
               voltage: null,
@@ -250,8 +256,10 @@ class ChargingController {
     try {
       // data cleaning
       const cleanedData = await this.preprocessing(req, res);
+      const firstData = [cleanedData[0]];
+
       // store data
-      const update = await ChargingService.updateFrameHistory(cleanedData);
+      const update = await ChargingService.updateFrameHistory(firstData);
       if (Array.isArray(update)) {
         const successResponses = update.filter((el) => el.status);
         if (successResponses.length > 0) {
