@@ -262,6 +262,20 @@ class ChargingController {
             message: "Frame history updated",
             pcb_barcode: el.pcb_barcode,
           }));
+          // turn off rectifier
+          try {
+            await axios({
+              method: "POST",
+              url: `${process.env.RECTI_URL}/set-module-32`,
+              data: { group: 0, value: 0 },
+              timeout: 5000,
+            });
+          } catch (error) {
+            res.json(
+              ResponseHelper.error("Failed to turn off power module", 500)
+            );
+          }
+
           res.json(ResponseHelper.success(messages));
         } else {
           const failedResponses = update.filter((el) => !el.status);
