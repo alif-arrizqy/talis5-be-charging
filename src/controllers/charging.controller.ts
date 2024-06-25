@@ -142,13 +142,10 @@ class ChargingController {
           const isTrue = await ChargingService.checkChargingStatusWithPcbBarcode(pcb_barcode);
 
           // check high temperature
-          if (average_cell_temperature / 10 > 55) {
-            throw new Error("Temperature is too high");
-          }
+          const temperature_status = (average_cell_temperature / 10 > 55) ? "high_temperture" : "normal";
+
           // check battery full
-          if (soc / 100 === 100) {
-            throw new Error("Battery is full");
-          }
+          const battery_status = (soc / 100 === 100) ? "fully_charged" : "low_battery";
 
           if (isTrue) {
             // store data
