@@ -20,7 +20,6 @@ class RectiController {
           .catch((error) => {
             res.json(ResponseHelper.error(error.message, 500));
           });
-        res.json(ResponseHelper.successMessage("Power module is on"));
       } catch (error) {
         res.json(ResponseHelper.error("Failed to turn on power module", 500));
       }
