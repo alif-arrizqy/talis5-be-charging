@@ -215,18 +215,12 @@ class ChargingController {
           ResponseHelper.success(results.filter((result) => result !== null))
         );
       } 
-      // else {
-      //   throw new Error("Failed to store data, please check Charging Status");
-      // }
+      else {
+        throw new Error("Failed to store data, please check Charging Status");
+      }
     } catch (error) {
       const messageError = error instanceof Error && error.message? error.message: "An unknown error occurred";
-      if (messageError === "Temperature is too high") {
-        res.json({ statusCode: 200, status: "tempHigh", message: "Temperature is too high"})
-      } else if (messageError === "Battery is full") {
-        res.json({ statusCode: 200, status: "full", message: "Battery is full"});
-      } else {
-        res.json(ResponseHelper.error(messageError, 400));
-      }
+      res.json(ResponseHelper.error(messageError, 400));
     }
   };
 
