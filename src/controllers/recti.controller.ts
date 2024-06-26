@@ -37,7 +37,6 @@ class RectiController {
           .catch((error) => {
             res.json(ResponseHelper.error(error.message, 500));
           });
-        // res.json(ResponseHelper.successMessage("Power module is off"));
       } catch (error) {
         res.json(ResponseHelper.error("Failed to turn off power module", 500));
       }
@@ -118,10 +117,6 @@ class RectiController {
           .catch((error) => {
             res.json(ResponseHelper.error(error.message, 500));
           });
-
-        // res.json(
-        //   ResponseHelper.successMessage(`Success set Rectifier Voltage`)
-        // );
       } else {
         res.json(ResponseHelper.error(`Missing Rectifier Data`, 404));
       }
@@ -150,8 +145,6 @@ class RectiController {
           .catch((error) => {
             res.json(ResponseHelper.error(error.message, 500));
           });
-
-        // res.json(ResponseHelper.successMessage(`Success set Rectifier Current`));
       } else {
         res.json(ResponseHelper.error(`Missing Rectifier Data`, 404));
       }
