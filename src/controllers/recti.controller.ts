@@ -11,7 +11,7 @@ class RectiController {
         await axios({
           method: "POST",
           url: `${process.env.RECTI_URL}/set-module-32`,
-          data: { group: 0, value: 14 },
+          data: { group: 0, value: 12 },
           timeout: 5000,
         })
           .then((response) => {
