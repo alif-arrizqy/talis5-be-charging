@@ -59,6 +59,10 @@ class RectiController {
     const totalCell: number = req.body.totalCell;
     const voltage: number = maxVoltCell * totalCell;
     const current: number = req.body.current;
+
+    // Helper function to add a delay
+    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
     try {
       const data = await RectiService.createRecti(payload);
       // initailize variable response
@@ -78,10 +82,10 @@ class RectiController {
           .catch((error) => {
             res.json(ResponseHelper.error(error.message, 500));
           });
-        
+
         if (responseSetVoltage === 1) {
           // delay
-          await new Promise((resolve) => setImmediate(resolve));
+          await delay(2000);
 
           // set current
           await axios({
