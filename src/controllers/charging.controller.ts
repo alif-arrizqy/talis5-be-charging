@@ -16,7 +16,7 @@ class ChargingController {
       });
       return response.data;
     } catch (error) {
-      throw new Error("Failed to retrieve data battery");
+      res.json(ResponseHelper.error("Failed fetch data /get-data"));
     }
   };
 
@@ -28,7 +28,7 @@ class ChargingController {
       // data cleaning
       return dataCleaning(raw);
     } catch (error) {
-      throw new Error("Failed to preprocess data");
+      res.json(ResponseHelper.error("Failed to preprocess data"));
     }
   };
 
@@ -58,7 +58,7 @@ class ChargingController {
     try {
       // data cleaning
       const cleanedData = await this.preprocessing(req, res);
-      const firstData = [cleanedData[0]];
+      const firstData = cleanedData ? [cleanedData[0]] : [];
 
       // store data
       const store = await ChargingService.createMasterFrame(firstData);
@@ -130,97 +130,118 @@ class ChargingController {
       // check charging status
       const results = await Promise.all(
         firstData.map(async (item) => {
-          const {
-            pcb_barcode,
-            sn_code_1,
-            sn_code_2,
-            voltage,
-            current,
-            soc,
-            average_cell_temperature,
-            remaining_charge_time,
-          } = item;
-
-          const isTrue = await ChargingService.checkChargingStatusWithPcbBarcode(pcb_barcode);
-
-          // check high temperature
-          const temperature_status = (average_cell_temperature / 10 > 55) ? "high_temperture" : "normal";
-
-          // check battery full
-          const battery_status = (soc / 100 === 100) ? "fully_charged" : "low_battery";
-
-          if (isTrue) {
-            // store data
-            await ChargingService.createLogData(item);
-
-            // check error log            
-            const checkFlag = await new CheckErrorLog()
-            const warningFlag = await checkFlag.warningFlagCheck(item);
-            const protectionFlag = await checkFlag.protectionFlagCheck(item);
-            const faultStatusFlag = await checkFlag.faultStatusFlagCheck(item);
-            const error_status = warningFlag.length > 0 || protectionFlag.length > 0 || faultStatusFlag.length > 0 ? true : false;
-
-            if (error_status) {
-              // store error log
-              await ChargingService.createErrorLog({
-                pcb_barcode,
-                warningFlag,
-                protectionFlag,
-                faultStatusFlag,
-              });
-            }
-
-            return {
+          try {
+            const {
               pcb_barcode,
-              charging: true,
-              battery_status,
-              temperature_status,
               sn_code_1,
               sn_code_2,
-              voltage: voltage / 100,
-              current: current / 100,
-              soc: soc / 100,
-              temperature: average_cell_temperature / 10,
-              time_estiminate: remaining_charge_time,
-              error_status: error_status,
-              error_log: { warningFlag, protectionFlag, faultStatusFlag }
-            };
-          } else {
-            return {
-              pcb_barcode,
-              charging: false,
-              battery_status,
-              temperature_status,
-              sn_code_1,
-              sn_code_2,
-              voltage: null,
-              current: null,
-              soc: null,
-              temperature: null,
-              time_estiminate: null,
-              error_log: {
-                warningFlag: [],
-                protectionFlag: [],
-                faultStatusFlag: []
+              voltage,
+              current,
+              soc,
+              average_cell_temperature,
+              remaining_charge_time,
+            } = item;
+
+            const isTrue =
+              await ChargingService.checkChargingStatusWithPcbBarcode(
+                pcb_barcode
+              );
+
+            // check high temperature
+            const temperature_status =
+              average_cell_temperature / 10 > 55
+                ? "high_temperature"
+                : "normal";
+
+            // check battery full
+            const battery_status =
+              soc / 100 === 100 ? "fully_charged" : "low_battery";
+
+            if (isTrue) {
+              // store data
+              await ChargingService.createLogData(item);
+
+              // check error log
+              const checkFlag = new CheckErrorLog();
+              const warningFlag = await checkFlag.warningFlagCheck(item);
+              const protectionFlag = await checkFlag.protectionFlagCheck(item);
+              const faultStatusFlag = await checkFlag.faultStatusFlagCheck(
+                item
+              );
+              const error_status =
+                warningFlag.length > 0 ||
+                protectionFlag.length > 0 ||
+                faultStatusFlag.length > 0;
+
+              if (error_status) {
+                // store error log
+                await ChargingService.createErrorLog({
+                  pcb_barcode,
+                  warningFlag,
+                  protectionFlag,
+                  faultStatusFlag,
+                });
               }
-            };
+
+              return {
+                pcb_barcode,
+                charging: true,
+                battery_status,
+                temperature_status,
+                sn_code_1,
+                sn_code_2,
+                voltage: voltage / 100,
+                current: current / 100,
+                soc: soc / 100,
+                temperature: average_cell_temperature / 10,
+                time_estimate: remaining_charge_time,
+                error_status: error_status,
+                error_log: { warningFlag, protectionFlag, faultStatusFlag },
+              };
+            } else {
+              return {
+                pcb_barcode,
+                charging: false,
+                battery_status,
+                temperature_status,
+                sn_code_1,
+                sn_code_2,
+                voltage: null,
+                current: null,
+                soc: null,
+                temperature: null,
+                time_estimate: null,
+                error_log: {
+                  warningFlag: [],
+                  protectionFlag: [],
+                  faultStatusFlag: [],
+                },
+              };
+            }
+          } catch (error) {
+            const messageError = error instanceof Error && error.message? error.message : "An unknown error occurred";
+            console.error(`Error processing item ${item.pcb_barcode}: ${messageError}`);
+            return null;
           }
-          // return null;
         })
       );
 
       // Check if all data has been stored
-      if (results.every((result) => result)) {
-        res.json(
+      if (results.every((result) => result !== null)) {
+        return res.json(
           ResponseHelper.success(results.filter((result) => result !== null))
         );
-      } 
-      else {
+      } else {
         throw new Error("Failed to store data, please check Charging Status");
       }
     } catch (error) {
-      const messageError = error instanceof Error && error.message? error.message: "An unknown error occurred";
-      res.json(ResponseHelper.error(messageError, 400));
+      const messageError = error instanceof Error && error.message? error.message : "An unknown error occurred";
+      console.log("storeChargingData error:", messageError);
+
+      // Ensure headers haven't been sent already before sending a response
+      if (!res.headersSent) {
+        return res.status(400).json(ResponseHelper.error(messageError, 400));
+      }
     }
   };
 
@@ -250,7 +271,7 @@ class ChargingController {
     try {
       // data cleaning
       const cleanedData = await this.preprocessing(req, res);
-      const firstData = [cleanedData[0]];
+      const firstData = cleanedData ? [cleanedData[0]] : [];
 
       // store data
       const update = await ChargingService.updateFrameHistory(firstData);
