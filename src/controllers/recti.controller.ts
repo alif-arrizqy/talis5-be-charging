@@ -70,6 +70,9 @@ class RectiController {
           data: { group: 0, subaddress: 0, voltage: voltage },
           timeout: 5000,
         });
+        
+        // delay
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
         // set current
         await axios({
