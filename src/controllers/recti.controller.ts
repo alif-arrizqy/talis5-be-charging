@@ -61,6 +61,8 @@ class RectiController {
     const current: number = req.body.current;
     try {
       const data = await RectiService.createRecti(payload);
+      // initailize variable response
+      let responseSetVoltage;
       if (data) {
         // post to recti api
         // set voltage
@@ -69,18 +71,26 @@ class RectiController {
           url: `${process.env.RECTI_URL}/set-voltage`,
           data: { group: 0, subaddress: 0, voltage: voltage },
           timeout: 5000,
-        });
+        })
+          .then((response) => {
+            responseSetVoltage = response.data.status;
+          })
+          .catch((error) => {
+            res.json(ResponseHelper.error(error.message, 500));
+          });
         
-        // delay
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        if (responseSetVoltage === 1) {
+          // delay
+          await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        // set current
-        await axios({
-          method: "POST",
-          url: `${process.env.RECTI_URL}/set-current`,
-          data: { group: 0, subaddress: 0, voltage: current * 1000 },
-          timeout: 5000,
-        });
+          // set current
+          await axios({
+            method: "POST",
+            url: `${process.env.RECTI_URL}/set-current`,
+            data: { group: 0, subaddress: 0, voltage: current * 1000 },
+            timeout: 5000,
+          });
+        }
 
         res.json(ResponseHelper.successMessage("Success update rectifier data"));
       } else {
