@@ -81,7 +81,7 @@ class RectiController {
         
         if (responseSetVoltage === 1) {
           // delay
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setImmediate(resolve));
 
           // set current
           await axios({
