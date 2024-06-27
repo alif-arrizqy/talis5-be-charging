@@ -59,76 +59,32 @@ class RectiController {
     const totalCell: number = req.body.totalCell;
     const voltage: number = maxVoltCell * totalCell;
     const current: number = req.body.current;
-
-    // try {
-    //   const data = await RectiService.createRecti(payload);
-    //   // initailize variable response
-    //   let responseSetVoltage;
-    //   if (data) {
-    //     // post to recti api
-    //     // set voltage
-    //     await axios({
-    //       method: "POST",
-    //       url: `${process.env.RECTI_URL}/set-voltage`,
-    //       data: { group: 0, subaddress: 0, voltage: voltage },
-    //       timeout: 5000,
-    //     })
-    //     .then((response) => {
-    //       responseSetVoltage = response.data.status;
-    //     })
-    //     .catch((error) => {
-    //       res.json(ResponseHelper.error(error.message, 500));
-    //     });
-
-    //   if (responseSetVoltage === 1) {
-    //     // delay
-    //     await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    //     // set current
-    //     await axios({
-    //       method: "POST",
-    //       url: `${process.env.RECTI_URL}/set-current`,
-    //       data: { group: 0, subaddress: 0, voltage: current * 1000 },
-    //       timeout: 5000,
-    //     });
-    //   }
-
-    //   res.json(ResponseHelper.successMessage("Success update rectifier data"));
-    // } else {
-    //     res.json(ResponseHelper.successMessage("Success create rectifier data"));
-    //   }
-    // } catch (error) {
-    //   res.json(ResponseHelper.error(error, 400));
-    // }
-
-    // store data to database
     try {
-      const storeData = await RectiService.createRecti(payload);
-      if (storeData) {
+      const data = await RectiService.createRecti(payload);
+      if (data) {
         // post to recti api
         // set voltage
         await axios({
           method: "POST",
           url: `${process.env.RECTI_URL}/set-voltage`,
           data: { group: 0, subaddress: 0, voltage: voltage },
-          timeout: 1000,
-        })
+          timeout: 5000,
+        });
+        
+        // delay
+        // await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        // set timeout or delay 2000ms
-        setTimeout(async () => {
-          // set current
-          await axios({
-            method: "POST",
-            url: `${process.env.RECTI_URL}/set-current`,
-            data: { group: 0, subaddress: 0, voltage: current * 1000 },
-            timeout: 1000,
-          })
-        }, 2000)
+        // set current
+        await axios({
+          method: "POST",
+          url: `${process.env.RECTI_URL}/set-current`,
+          data: { group: 0, subaddress: 0, current: current * 1000 },
+          timeout: 5000,
+        });
 
-        // response success
         res.json(ResponseHelper.successMessage("Success update rectifier data"));
       } else {
-        res.json(ResponseHelper.error("Failed to store rectifier data", 400));
+        res.json(ResponseHelper.successMessage("Success create rectifier data"));
       }
     } catch (error) {
       res.json(ResponseHelper.error(error, 400));
@@ -181,7 +137,7 @@ class RectiController {
         await axios({
           method: "POST",
           url: `${process.env.RECTI_URL}/set-current`,
-          data: { group: 0, subaddress: 0, voltage: Number(data) * 1000 },
+          data: { group: 0, subaddress: 0, current: Number(data) * 1000 },
           timeout: 5000,
         })
           .then((response) => {
