@@ -191,7 +191,7 @@ class ChargingController {
                 sn_code_1,
                 sn_code_2,
                 voltage: voltage / 100,
-                current: current / 100,
+                current: current / 10,
                 soc: soc / 100,
                 temperature: average_cell_temperature / 10,
                 time_estimate: remaining_charge_time,
