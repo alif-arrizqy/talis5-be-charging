@@ -11,7 +11,7 @@ function createResultObject(values: number[], prefix: string, start: number = 0)
 const dataCleaning = (data: IDataItem) => {
   return data.data.map((item: any) => {
     return {
-      pcb_barcode: item.pcb_barcode,
+      pcb_barcode: item.pcb_barcode.trim(),
       sn_code_1: item.sn_code_1,
       sn_code_2: item.sn_code_2,
       warning_flag: item.warning_flag,
