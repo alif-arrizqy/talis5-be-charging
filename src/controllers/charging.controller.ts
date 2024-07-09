@@ -138,6 +138,8 @@ class ChargingController {
               voltage,
               current,
               soc,
+              max_cell_voltage,
+              min_cell_voltage,
               average_cell_temperature,
               remaining_charge_time,
             } = item;
@@ -155,7 +157,9 @@ class ChargingController {
 
             // check battery full
             const battery_status =
-              soc / 100 === 100 ? "fully_charged" : "low_battery";
+              voltage === 5760 || max_cell_voltage === 3650
+                ? "fully_charged"
+                : "low_battery";
 
             if (isTrue) {
               // store data
@@ -193,6 +197,8 @@ class ChargingController {
                 voltage: voltage / 100,
                 current: current / 10,
                 soc: soc / 100,
+                max_cell_voltage: max_cell_voltage,
+                min_cell_voltage: min_cell_voltage,
                 temperature: average_cell_temperature / 10,
                 time_estimate: remaining_charge_time,
                 error_status: error_status,
@@ -209,6 +215,8 @@ class ChargingController {
                 voltage: null,
                 current: null,
                 soc: null,
+                max_cell_voltage: null,
+                min_cell_voltage: null,
                 temperature: null,
                 time_estimate: null,
                 error_log: {
