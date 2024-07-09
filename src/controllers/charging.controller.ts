@@ -4,6 +4,7 @@ import { ResponseHelper } from "../helpers/response/response";
 import { dataCleaning } from "../helpers/preprocessing/data";
 import * as ChargingService from "../services/charging.service";
 import { CheckErrorLog } from "../helpers/errorFlagCheck";
+import { MAX_VALUE_VOLTAGE, MAX_VALUE_CELL_VOLTAGE } from "../helpers/constants";
 
 class ChargingController {
   // Helper function to fetch battery data
@@ -157,7 +158,7 @@ class ChargingController {
 
             // check battery full
             const battery_status =
-              voltage === 5760 || max_cell_voltage === 3650
+              voltage === MAX_VALUE_VOLTAGE || max_cell_voltage === MAX_VALUE_CELL_VOLTAGE
                 ? "fully_charged"
                 : "low_battery";
 
