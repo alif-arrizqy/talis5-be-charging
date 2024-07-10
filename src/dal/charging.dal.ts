@@ -5,7 +5,9 @@ import { CheckErrorLog } from "../helpers/errorFlagCheck";
 
 const getAllMasterFrame = async (): Promise<ChargingDto.IMasterFrame[]> => {
   try {
-    const masterFrame = await prisma.master_frame.findMany();
+    const masterFrame = await prisma.master_frame.findMany({
+      orderBy: { id: "desc" },
+    });
     return masterFrame;
   } catch (error) {
     console.log(error);
