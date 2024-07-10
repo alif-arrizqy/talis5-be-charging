@@ -158,7 +158,7 @@ class ChargingController {
 
             // check battery full
             const battery_status =
-              voltage === MAX_VALUE_VOLTAGE || max_cell_voltage === MAX_VALUE_CELL_VOLTAGE
+              voltage > MAX_VALUE_VOLTAGE || max_cell_voltage > MAX_VALUE_CELL_VOLTAGE
                 ? "fully_charged"
                 : "low_battery";
 
