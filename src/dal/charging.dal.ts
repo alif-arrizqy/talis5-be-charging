@@ -8,6 +8,19 @@ const getAllMasterFrame = async (): Promise<ChargingDto.IMasterFrame[]> => {
     const masterFrame = await prisma.master_frame.findMany({
       orderBy: { id: "desc" },
     });
+
+    if (masterFrame) {
+      // convert created_at to Asia/Jakarta timezone
+      return masterFrame.map((item) => ({
+        ...item,
+        createdAt: moment(item.createdAt)
+          .tz("Asia/Jakarta")
+          .format("YYYY-MM-DD HH:mm:ss"),
+        updatedAt: moment(item.updatedAt)
+          .tz("Asia/Jakarta")
+          .format("YYYY-MM-DD HH:mm:ss"),
+      }));
+    }
     return masterFrame;
   } catch (error) {
     console.log(error);
@@ -26,7 +39,18 @@ const getMasterFrame = async (
     });
 
     if (masterFrame) {
-      return masterFrame;
+      return {
+        pcb_barcode: masterFrame.pcb_barcode,
+        sn_code_1: masterFrame.sn_code_1,
+        sn_code_2: masterFrame.sn_code_2,
+        charging: masterFrame.charging,
+        createdAt: moment(masterFrame.createdAt)
+          .tz("Asia/Jakarta")
+          .format("YYYY-MM-DD HH:mm:ss"),
+        updatedAt: moment(masterFrame.updatedAt)
+          .tz("Asia/Jakarta")
+          .format("YYYY-MM-DD HH:mm:ss"),
+      };
     } else {
       throw new Error(`Master Frame ${pcb_barcode} Not Found `);
     }
