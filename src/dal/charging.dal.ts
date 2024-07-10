@@ -293,6 +293,63 @@ const getAllFrameHistory = async (): Promise<
   }
 };
 
+// get frame history error loggers
+const getErrorCases = (errors: any, flag: any) => {
+  return errors
+    .filter((item: any) => item.error_flag === flag)
+    .map((item: any) => ({
+      date_time: item.date_time,
+      pcb_barcode: item.pcb_barcode,
+      error_flag: item.error_flag,
+      error_case: item.error_case,
+    }));
+};
+
+// base response get frame history
+const getFrameData = (item: any) => {
+  const {
+    pcb_barcode,
+    voltage = null,
+    current = null,
+    remaining_capacity = null,
+    soc = null,
+    soh = null,
+    max_cell_voltage = null,
+    min_cell_voltage = null,
+    cell_voltage_diff = null,
+    max_cell_temperature = null,
+    min_cell_temperature = null,
+    remaining_charge_time = null,
+    remaining_discharge_time = null,
+    charging = null,
+    error_status = null,
+    start_time = null,
+    end_time = null,
+    charging_time = null,
+  } = item;
+
+  return {
+    pcb_barcode,
+    voltage: voltage !== null ? voltage / 100 : null,
+    current: current !== null ? current / 100 : null,
+    remaining_capacity: remaining_capacity !== null ? remaining_capacity / 100 : null,
+    soc: soc !== null ? soc / 100 : null,
+    soh: soh !== null ? soh / 100 : null,
+    max_cell_voltage: max_cell_voltage !== null ? max_cell_voltage : null,
+    min_cell_voltage: min_cell_voltage !== null ? min_cell_voltage : null,
+    cell_voltage_diff: cell_voltage_diff !== null ? cell_voltage_diff : null,
+    max_cell_temperature: max_cell_temperature !== null ? max_cell_temperature / 10 : null,
+    min_cell_temperature: min_cell_temperature !== null ? min_cell_temperature / 10 : null,
+    remaining_charge_time: remaining_charge_time !== null ? remaining_charge_time : null,
+    remaining_discharge_time: remaining_discharge_time !== null ? remaining_discharge_time : null,
+    charging: charging,
+    error_status: error_status,
+    start_time: start_time,
+    end_time: end_time,
+    charging_time: charging_time,
+  };
+};
+
 const getFrameHistory = async (
   pcb_barcode: string
 ): Promise<ChargingDto.IFrameHistoryOutput> => {
@@ -304,110 +361,33 @@ const getFrameHistory = async (
       orderBy: { id: "desc" },
     });
 
-    const isError = frameHistory.filter((item) => item.error_status === true);
-
-    // if error_status is true
-    if (isError.length > 0) {
-      // find frame logger error where pcb_barcode
-      // and date_time between start_time and end_time
+    const isError = frameHistory.some((item) => item.error_status === true);
+    
+    // if frame history has error log
+    if (isError) {
       const results = await Promise.all(
         frameHistory.map(async (item) => {
-          const {
-            pcb_barcode,
-            voltage = null,
-            current = null,
-            remaining_capacity = null,
-            soc = null,
-            soh = null,
-            max_cell_voltage = null,
-            min_cell_voltage = null,
-            cell_voltage_diff = null,
-            max_cell_temperature = null,
-            min_cell_temperature = null,
-            remaining_charge_time = null,
-            remaining_discharge_time = null,
-            charging = null,
-            error_status = null,
-            start_time = null,
-            end_time = null,
-            charging_time = null,
-          } = item;
+          const frameData = getFrameData(item);
 
-          if (start_time && end_time) {
+          // get error log by date time
+          if (item.start_time && item.end_time) {
             const frameLoggerError = await prisma.frame_logger_error.findMany({
               where: {
-                pcb_barcode: pcb_barcode,
+                pcb_barcode: item.pcb_barcode,
                 date_time: {
-                  gte: start_time,
-                  lte: end_time,
+                  gte: item.start_time,
+                  lte: item.end_time,
                 },
               },
               orderBy: { id: "desc" },
             });
 
-            // collect error log data per error flag
-            const warningFlag = frameLoggerError.filter(
-              (item) => item.error_flag === "warning_flag"
-            );
-            const protectionFlag = frameLoggerError.filter(
-              (item) => item.error_flag === "protection_flag"
-            );
-            const faultStatusFlag = frameLoggerError.filter(
-              (item) => item.error_flag === "fault_status_flag"
-            );
-
-            // get date_time, pcb_barcode, error_flag, error_case
-            const warningFlagCase = warningFlag.map((item) => {
-              return {
-                date_time: item.date_time,
-                pcb_barcode: item.pcb_barcode,
-                error_flag: item.error_flag,
-                error_case: item.error_case,
-              };
-            });
-
-            const protectionFlagCase = protectionFlag.map((item) => {
-              return {
-                date_time: item.date_time,
-                pcb_barcode: item.pcb_barcode,
-                error_flag: item.error_flag,
-                error_case: item.error_case,
-              };
-            });
-
-            const faultStatusFlagCase = faultStatusFlag.map((item) => {
-              return {
-                date_time: item.date_time,
-                pcb_barcode: item.pcb_barcode,
-                error_flag: item.error_flag,
-                error_case: item.error_case,
-              };
-            });
-
-            // combine frame history data and error log data
             return {
-              pcb_barcode,
-              voltage: voltage !== null ? voltage / 100 : null,
-              current: current !== null ? current / 100 : null,
-              remaining_capacity: remaining_capacity !== null ? remaining_capacity / 100 : null,
-              soc: soc !== null ? soc / 100 : null,
-              soh: soh !== null ? soh / 100 : null,
-              max_cell_voltage: max_cell_voltage !== null ? max_cell_voltage : null,
-              min_cell_voltage: min_cell_voltage !== null ? min_cell_voltage : null,
-              cell_voltage_diff: cell_voltage_diff !== null ? cell_voltage_diff : null,
-              max_cell_temperature: max_cell_temperature !== null ? max_cell_temperature / 10 : null,
-              min_cell_temperature: min_cell_temperature !== null ? min_cell_temperature / 10 : null,
-              remaining_charge_time: remaining_charge_time !== null ? remaining_charge_time : null,
-              remaining_discharge_time: remaining_discharge_time !== null ? remaining_discharge_time : null,
-              charging: charging,
-              error_status: error_status,
-              start_time: start_time,
-              end_time: end_time,
-              charging_time: charging_time,
+              ...frameData,
               errorLog: {
-                warningFlag: warningFlagCase,
-                protectionFlag: protectionFlagCase,
-                faultStatusFlag: faultStatusFlagCase,
+                warningFlag: getErrorCases(frameLoggerError, "warning_flag"),
+                protectionFlag: getErrorCases(frameLoggerError, "protection_flag"),
+                faultStatusFlag: getErrorCases(frameLoggerError, "fault_status_flag"),
               },
             };
           } else {
@@ -418,7 +398,14 @@ const getFrameHistory = async (
 
       return results;
     } else {
-      throw new Error(`Frame History ${pcb_barcode} Not Found`);
+      return frameHistory.map((item) => ({
+        ...getFrameData(item),
+        error_log: {
+          warningFlag: [],
+          protectionFlag: [],
+          faultStatusFlag: [],
+        },
+      }));
     }
   } catch (error) {
     console.log(error);
