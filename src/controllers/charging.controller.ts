@@ -8,6 +8,10 @@ import {
   MAX_VALUE_VOLTAGE,
   MAX_VALUE_CELL_VOLTAGE,
 } from "../helpers/constants";
+import WebSocketConn from "../../websocket";
+
+// Get WebSocketServer instance
+const wss = WebSocketConn.getInstance().wss;
 
 class ChargingController {
   // Helper function to fetch battery data
