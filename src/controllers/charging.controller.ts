@@ -260,48 +260,67 @@ class ChargingController {
   // Store charging data
   storeChargingData = async (req: Request, res: Response) => {
     try {
-      let loop = true;
+      let loop: boolean = true;
+      let responseSent: boolean = false; // Flag to track if response has been sent
+      let response: any; // Prepare response variable outside the loop
+
       while (loop) {
-        // data cleaning
+        // Add a delay of 1 second
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Data cleaning
         const cleanedData = (await this.preprocessing(req, res)) ?? [];
         const firstData = [cleanedData[0]];
 
-        // process data
-        const resultProcess = this.processChargingData(firstData);
-        resultProcess.then((result) => {
-          if (result) {
-            console.log(result);
-            // get charging status
-            const chargingStatus = result.map((el) => el.charging);
-            const batteryStatus = result.map((el) => el.battery_status);
-            const temperatureStatus = result.map((el) => el.temperature_status);
+        // Process data
+        const resultProcess = await this.processChargingData(firstData); // Await the promise here
 
-            if (
-              chargingStatus.includes(false) || 
-              batteryStatus.includes("fully_charged") || 
-              temperatureStatus.includes("high_temperature")
-            ) {
-              loop = false;
-            }
-          } else {
-            console.log('processChargingData error');
+        if (resultProcess) {
+          console.log(resultProcess);
+          // Get charging status
+          const chargingStatus = resultProcess.map((el) => el.charging);
+          const batteryStatus = resultProcess.map((el) => el.battery_status);
+          const temperatureStatus = resultProcess.map(
+            (el) => el.temperature_status
+          );
+
+          // If conditions are met, stop the loop and prepare response
+          if (
+            chargingStatus.includes(false) ||
+            batteryStatus.includes("fully_charged") ||
+            temperatureStatus.includes("high_temperature")
+          ) {
+            loop = false;
+            response = ResponseHelper.success(resultProcess); // Prepare response but don't send yet
+            responseSent = true; // Set flag to true
           }
-        })
+        }
       }
 
+      // After loop, check if response needs to be sent
+      if (responseSent) {
+        res.json(response); // Send response here
+      }
+
+      // WebSocket logic outside the loop to send the final state or message
+      const wsResponse = JSON.stringify({
+        statusCode: 200,
+        status: "success",
+        data: response,
+      });
+
+      wss.clients.forEach((client) => {
+        if (client.readyState === client.OPEN) {
+          client.send(wsResponse);
+        }
+      });
     } catch (error) {
-      const messageError =
-        error instanceof Error && error.message
-          ? error.message
-          : "An unknown error occurred";
-      console.log("storeChargingData error:", messageError);
+      console.error(`Error StoreChargingData: ${error}`);
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Internal server error" });
+      }
     }
   };
-
-  // realtime monitoring charging data
-  realtimeMonitoring = async () => {
-    
-  }
 
   // Retrieve all frame history
   getAllFrameHistory = async (req: Request, res: Response) => {
