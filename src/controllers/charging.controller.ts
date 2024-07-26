@@ -275,6 +275,73 @@ class ChargingController {
     }
   };
 
+  // Rectifier power module
+  powerModule = async (req: Request, res: Response) => {
+    let doubleCheck = 3;
+
+    while (doubleCheck > 0) {
+      try {
+        // read current
+        const cleanedData = await this.preprocessing(req, res);
+        const firstData = cleanedData ? [cleanedData[0]] : [];
+        const current = firstData[0].current;
+
+        if (current > 0) {
+          try {
+            const rectiResponse = await axios({
+              method: "POST",
+              url: `${process.env.RECTI_URL}/set-module-32`,
+              data: { group: 0, value: 0 },
+              timeout: 5000,
+            });
+            if (rectiResponse.data.status === 1) {
+              console.log("power module is off");
+            } else {
+              console.log("power module is not off");
+              break;
+            }
+          } catch (error) {
+            const messageError =
+              error instanceof Error && error.message
+                ? error.message
+                : "An unknown error occurred";
+            console.log("set power module error:", messageError);
+
+            // Ensure headers haven't been sent already before sending a response
+            if (!res.headersSent) {
+              console.log(`failed to connect to recti`, messageError);
+              return false;
+            }
+          }
+        } else {
+          console.log(`current is 0`);
+        }
+      } catch (error) {
+        const messageError =
+          error instanceof Error && error.message
+            ? error.message
+            : "An unknown error occurred";
+        console.log("power module error:", messageError);
+
+        // Ensure headers haven't been sent already before sending a response
+        if (!res.headersSent) {
+          console.log(`failed to connect to recti`, messageError);
+          return false;
+        }
+      }
+
+      doubleCheck--;
+    }
+
+    if (doubleCheck === 0) {
+      console.log("Double check completed. Current is 0 and recti is off.");
+      return true;
+    } else {
+      console.log("Double check failed. Current is not 0 or recti is not off.");
+      return false;
+    }
+  };
+
   // Update frame history
   updateFrameHistory = async (req: Request, res: Response) => {
     try {
