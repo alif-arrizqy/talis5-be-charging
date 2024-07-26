@@ -4,7 +4,10 @@ import { ResponseHelper } from "../helpers/response/response";
 import { dataCleaning } from "../helpers/preprocessing/data";
 import * as ChargingService from "../services/charging.service";
 import { CheckErrorLog } from "../helpers/errorFlagCheck";
-import { MAX_VALUE_VOLTAGE, MAX_VALUE_CELL_VOLTAGE } from "../helpers/constants";
+import {
+  MAX_VALUE_VOLTAGE,
+  MAX_VALUE_CELL_VOLTAGE,
+} from "../helpers/constants";
 
 class ChargingController {
   // Helper function to fetch battery data
@@ -83,7 +86,10 @@ class ChargingController {
         res.json(ResponseHelper.error("Failed to store master frame", 400));
       }
     } catch (error) {
-      const messageError = error instanceof Error && error.message? error.message: "An unknown error occurred";
+      const messageError =
+        error instanceof Error && error.message
+          ? error.message
+          : "An unknown error occurred";
       res.json(ResponseHelper.error(messageError, 400));
     }
   };
@@ -158,7 +164,8 @@ class ChargingController {
 
             // check battery full
             const battery_status =
-              voltage > MAX_VALUE_VOLTAGE || max_cell_voltage > MAX_VALUE_CELL_VOLTAGE
+              voltage > MAX_VALUE_VOLTAGE ||
+              max_cell_voltage > MAX_VALUE_CELL_VOLTAGE
                 ? "fully_charged"
                 : "low_battery";
 
@@ -228,8 +235,13 @@ class ChargingController {
               };
             }
           } catch (error) {
-            const messageError = error instanceof Error && error.message? error.message : "An unknown error occurred";
-            console.error(`Error processing item ${item.pcb_barcode}: ${messageError}`);
+            const messageError =
+              error instanceof Error && error.message
+                ? error.message
+                : "An unknown error occurred";
+            console.error(
+              `Error processing item ${item.pcb_barcode}: ${messageError}`
+            );
             return null;
           }
         })
@@ -244,7 +256,10 @@ class ChargingController {
         throw new Error("Failed to store data, please check Charging Status");
       }
     } catch (error) {
-      const messageError = error instanceof Error && error.message? error.message : "An unknown error occurred";
+      const messageError =
+        error instanceof Error && error.message
+          ? error.message
+          : "An unknown error occurred";
       console.log("storeChargingData error:", messageError);
 
       // Ensure headers haven't been sent already before sending a response
@@ -398,10 +413,13 @@ class ChargingController {
       const status = await ChargingService.checkChargingStatus();
       res.json(ResponseHelper.success(status));
     } catch (error) {
-      const messageError = error instanceof Error && error.message? error.message: "An unknown error occurred";
+      const messageError =
+        error instanceof Error && error.message
+          ? error.message
+          : "An unknown error occurred";
       res.json(ResponseHelper.error(messageError, 400));
     }
-  }
+  };
 }
 
 export default ChargingController;
