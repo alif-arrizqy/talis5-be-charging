@@ -345,51 +345,50 @@ class ChargingController {
   // Update frame history
   updateFrameHistory = async (req: Request, res: Response) => {
     try {
-      // data cleaning
-      const cleanedData = await this.preprocessing(req, res);
-      const firstData = cleanedData ? [cleanedData[0]] : [];
+      // turn off recti
+      const rectiStatus = await this.powerModule(req, res);
+      
+      if (rectiStatus) {
+        // data cleaning
+        const cleanedData = await this.preprocessing(req, res);
+        const firstData = cleanedData ? [cleanedData[0]] : [];
 
-      // store data
-      const update = await ChargingService.updateFrameHistory(firstData);
-      if (Array.isArray(update)) {
-        const successResponses = update.filter((el) => el.status);
-        if (successResponses.length > 0) {
-          const messages = successResponses.map((el) => ({
-            message: "Frame history updated",
-            pcb_barcode: el.pcb_barcode,
-          }));
-          // turn off rectifier
-          try {
-            await axios({
-              method: "POST",
-              url: `${process.env.RECTI_URL}/set-module-32`,
-              data: { group: 0, value: 0 },
-              timeout: 5000,
-            });
-          } catch (error) {
-            res.json(
-              ResponseHelper.error("Failed to turn off power module", 500)
-            );
-          }
-
-          res.json(ResponseHelper.success(messages));
-        } else {
-          const failedResponses = update.filter((el) => !el.status);
-          if (failedResponses.length > 0) {
-            const errors = failedResponses.map((el) => ({
-              message: "Frame charging is false",
+        // store data
+        const update = await ChargingService.updateFrameHistory(firstData);
+        if (Array.isArray(update)) {
+          const successResponses = update.filter((el) => el.status);
+          if (successResponses.length > 0) {
+            const messages = successResponses.map((el) => ({
+              message: "Frame history updated",
               pcb_barcode: el.pcb_barcode,
             }));
-            res.json(ResponseHelper.error(errors, 400));
+            res.json(ResponseHelper.success(messages));
           } else {
-            res.json(ResponseHelper.error("Failed to update frame history", 400));
+            const failedResponses = update.filter((el) => !el.status);
+            if (failedResponses.length > 0) {
+              const errors = failedResponses.map((el) => ({
+                message: "Frame charging is false",
+                pcb_barcode: el.pcb_barcode,
+              }));
+              res.json(ResponseHelper.error(errors, 400));
+            } else {
+              res.json(
+                ResponseHelper.error("Failed to update frame history", 400)
+              );
+            }
           }
+        } else {
+          res.json(ResponseHelper.error("Failed to update frame history", 400));
         }
       } else {
+        // failed to turn off recti and update frame history
         res.json(ResponseHelper.error("Failed to update frame history", 400));
       }
     } catch (error) {
-      const messageError = error instanceof Error && error.message? error.message: "An unknown error occurred";
+      const messageError =
+        error instanceof Error && error.message
+          ? error.message
+          : "An unknown error occurred";
       res.json(ResponseHelper.error(messageError, 400));
     }
   };
