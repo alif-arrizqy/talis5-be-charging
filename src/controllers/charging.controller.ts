@@ -66,7 +66,7 @@ class ChargingController {
 
       // is the string starts with "TBI"?
       if (!firstData[0].pcb_barcode.startsWith("TBI")) {
-        return res.json(ResponseHelper.error(`Format pcb_barcode is incorrect, pcb_barcode: ${firstData[0].pcb_barcode}`, 400));
+        return res.json(ResponseHelper.error("Format pcb_barcode is incorrect", 400));
       }
 
       // store data
