@@ -64,6 +64,11 @@ class ChargingController {
       const cleanedData = await this.preprocessing(req, res);
       const firstData = cleanedData ? [cleanedData[0]] : [];
 
+      // is the string starts with "TBI"?
+      if (!firstData[0].pcb_barcode.startsWith("TBI")) {
+        return res.json(ResponseHelper.error(`Format pcb_barcode is incorrect, pcb_barcode: ${firstData[0].pcb_barcode}`, 400));
+      }
+
       // store data
       const store = await ChargingService.createMasterFrame(firstData);
       if (Array.isArray(store)) {
