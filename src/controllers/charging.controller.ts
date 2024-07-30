@@ -73,7 +73,7 @@ class ChargingController {
   storeMasterFrame = async (req: Request, res: Response) => {
     try {
       // data cleaning
-      const cleanedData = await this.preprocessing(req, res);
+      const cleanedData:any = await this.preprocessing(req, res);
       const firstData = cleanedData ? [cleanedData[0]] : [];
 
       // is the string starts with "TBI"?
@@ -148,7 +148,7 @@ class ChargingController {
   storeChargingData = async (req: Request, res: Response) => {
     try {
       // data cleaning
-      const cleanedData = (await this.preprocessing(req, res)) ?? [];
+      const cleanedData:any = (await this.preprocessing(req, res)) ?? [];
       const firstData = [cleanedData[0]];
 
       // check charging status
@@ -314,7 +314,7 @@ class ChargingController {
     while (doubleCheck > 0) {
       try {
         // read current
-        const cleanedData = await this.preprocessing(req, res);
+        const cleanedData:any = await this.preprocessing(req, res);
         const firstData = cleanedData ? [cleanedData[0]] : [];
         const current = firstData[0].current;
 
@@ -382,7 +382,7 @@ class ChargingController {
       
       if (rectiStatus) {
         // data cleaning
-        const cleanedData = await this.preprocessing(req, res);
+        const cleanedData:any = await this.preprocessing(req, res);
         const firstData = cleanedData ? [cleanedData[0]] : [];
 
         // store data
