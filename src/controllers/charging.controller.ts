@@ -32,7 +32,19 @@ class ChargingController {
       // data cleaning
       return dataCleaning(raw);
     } catch (error) {
-      res.json(ResponseHelper.error("Failed to preprocess data"));
+      // res.json(ResponseHelper.error("Failed to preprocess data"));
+      const messageError =
+        error instanceof Error && error.message
+          ? error.message
+          : "An unknown error occurred";
+      console.log("pre-processing cleaned data error:", messageError);
+
+      // Ensure headers haven't been sent already before sending a response
+      if (!res.headersSent) {
+        return res
+          .status(400)
+          .json(ResponseHelper.error(messageError, 400));
+      }
     }
   };
 
