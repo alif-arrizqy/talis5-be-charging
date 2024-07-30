@@ -414,7 +414,7 @@ class ChargingController {
         }
       } else {
         // failed to turn off recti and update frame history
-        res.json(ResponseHelper.error("Failed to update frame history", 400));
+        res.json(ResponseHelper.error("Failed to connect recti ip, data frame not updated", 400));
       }
     } catch (error) {
       const messageError =
