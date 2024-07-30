@@ -347,6 +347,40 @@ class ChargingController {
           }
         } else {
           console.log(`current is 0`);
+          // try to turn recti off
+          try {
+            const rectiResponse = await axios({
+              method: "POST",
+              url: `${process.env.RECTI_URL}/set-module-32`,
+              data: { group: 0, value: 0 },
+              timeout: 10000,
+            });
+            if (rectiResponse.data.status === 1) {
+              console.log("current state: current is 0, power module is off");
+              return true;
+            } else {
+              console.log("current state: current is 0, power module is not off");
+              break;
+            }
+          } catch (error) {
+            const messageError =
+              error instanceof Error && error.message
+                ? error.message
+                : "An unknown error occurred";
+            console.log(
+              "current state: current is 0, set power module error:",
+              messageError
+            );
+
+            // Ensure headers haven't been sent already before sending a response
+            if (!res.headersSent) {
+              console.log(
+                `current state: current is 0, failed to connect to recti`,
+                messageError
+              );
+              return false;
+            }
+          }
         }
       } catch (error) {
         const messageError =
