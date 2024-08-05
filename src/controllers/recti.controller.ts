@@ -131,6 +131,14 @@ class RectiController {
       const data = await RectiService.createCurrent(payload);
       // post to recti api
       if (data !== null) {
+        // set-voltage
+        await axios({
+          method: "POST",
+          url: `${process.env.RECTI_URL}/set-voltage`,
+          data: { group: 0, subaddress: 0, voltage: 57600 },
+          timeout: 5000,
+        })
+
         await axios({
           method: "POST",
           url: `${process.env.RECTI_URL}/set-current`,
