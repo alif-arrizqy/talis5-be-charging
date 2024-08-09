@@ -118,3 +118,54 @@ model frame_logger_error {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model logger_discharge {
+  id Int @default(autoincrement()) @id
+  address Int
+  rxtx String
+  pcb_barcode String
+  pack_barcode String
+  date_time String
+  cell_count Int
+  cell_voltage_1 Int
+  cell_voltage_2 Int
+  cell_voltage_3 Int
+  cell_voltage_4 Int
+  cell_voltage_5 Int
+  cell_voltage_6 Int
+  cell_voltage_7 Int
+  cell_voltage_8 Int
+  cell_voltage_9 Int
+  cell_voltage_10 Int
+  cell_voltage_11 Int
+  cell_voltage_12 Int
+  cell_voltage_13 Int
+  cell_voltage_14 Int
+  cell_voltage_15 Int
+  cell_voltage_16 Int
+  max_cell_voltage Int
+  min_cell_voltage Int
+  total_voltage Int
+  current Float
+  full_capacity Int
+  remaining_capacity Float
+  all_chg_ah Int
+  all_dsg_ah Int
+  all_chg_time Float
+  all_dsg_time Float
+  all_chg_kwh Int
+  all_dsg_kwh Int
+  soc Float
+  soh Float
+  temperature_count Int
+  cell_temperature_1 Float
+  cell_temperature_2 Float
+  cell_temperature_3 Float
+  cell_temperature_4 Float
+  mos_temp Float
+  amb_temp Float
+  status_code String
+  status_log String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
