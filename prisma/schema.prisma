@@ -145,7 +145,7 @@ model logger_discharge {
   cell_voltage_16 Int
   max_cell_voltage Int
   min_cell_voltage Int
-  total_voltage Int
+  total_voltage Float
   current Float
   full_capacity Int
   remaining_capacity Float
