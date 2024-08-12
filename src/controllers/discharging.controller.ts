@@ -25,8 +25,10 @@ class DischargingController {
       );
       // Check if all data has been stored
       if (results.every((result) => result !== null)) {
-        results.filter((result) => console.log("Data stored successfully:", result !== null));
-        return res.status(201).json(ResponseHelper.successMessage("Data stored successfully", 201));
+        console.log("Data stored successfully for all items", results.length);
+        return res
+          .status(201)
+          .json(ResponseHelper.successMessage("Data stored successfully", 201));
       } else {
         throw new Error("Failed to store data, please check input body");
       }
