@@ -10,10 +10,7 @@ class DischargingController {
         data.map(async (item: any) => {
           try {
             await DischargingService.createLogDischarging(item);
-            return ResponseHelper.successMessage(
-              "Data stored successfully",
-              201
-            );
+            return true;
           } catch (error) {
             const messageError =
               error instanceof Error && error.message
@@ -28,11 +25,8 @@ class DischargingController {
       );
       // Check if all data has been stored
       if (results.every((result) => result !== null)) {
-        return res
-          .status(201)
-          .json(
-            ResponseHelper.success(results.filter((result) => result !== null))
-          );
+        results.filter((result) => console.log("Data stored successfully:", result !== null));
+        return res.status(201).json(ResponseHelper.successMessage("Data stored successfully", 201));
       } else {
         throw new Error("Failed to store data, please check input body");
       }
