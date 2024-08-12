@@ -10,11 +10,10 @@ class DischargingController {
         data.map(async (item: any) => {
           try {
             await DischargingService.createLogDischarging(item);
-            return res
-              .status(201)
-              .json(
-                ResponseHelper.successMessage("Data stored successfully", 201)
-              );
+            return ResponseHelper.successMessage(
+              "Data stored successfully",
+              201
+            );
           } catch (error) {
             const messageError =
               error instanceof Error && error.message
