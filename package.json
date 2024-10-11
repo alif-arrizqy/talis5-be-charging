@@ -6,7 +6,11 @@
   "scripts": {
     "build": "tsc -p .",
     "dev": "npx nodemon ./server.ts",
-    "start": "ts-node dist/server.js"
+    "start": "ts-node dist/server.js",
+    "prisma:init": "npx prisma init",
+    "prisma:generate": "npx prisma generate",
+    "prisma:migrate": "npx prisma migrate dev --name init",
+    "prisma:pull": "npx prisma db pull"
   },
   "author": "alif ayatulloh arrizqy",
   "license": "ISC",
